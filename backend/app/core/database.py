@@ -7,11 +7,26 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./exambuddy.db")
 
-# Handle Supabase pooled connection which uses port 6543 (transaction) or 5432 (session)
-# and requires SSL.
+# Robust SSL handling for Supabase/Asyncpg
+import ssl
 connect_args = {}
 if "postgresql" in DATABASE_URL:
-    connect_args["ssl"] = "require"
+    try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        connect_args["ssl"] = ctx
+        
+        # Log connection details (masking password)
+        try:
+            from sqlalchemy.engine.url import make_url
+            url_obj = make_url(DATABASE_URL)
+            print(f"Attempting DB Connection -> Host: {url_obj.host}, Port: {url_obj.port}, Database: {url_obj.database}")
+        except Exception as e:
+            print(f"Could not parse DB URL for logging: {e}")
+
+    except Exception as e:
+        print(f"Error creating SSL context: {e}")
 
 engine = create_async_engine(
     DATABASE_URL,
