@@ -37,6 +37,7 @@ export default function RegisterPage() {
             return;
         }
 
+        console.log("Registering with API:", API_BASE_URL);
         try {
             const res = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: "POST",
