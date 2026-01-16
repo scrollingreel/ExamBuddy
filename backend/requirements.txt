@@ -14,3 +14,4 @@ alembic
 psycopg2-binary
 aiosqlite
 supabase
+email-validator
