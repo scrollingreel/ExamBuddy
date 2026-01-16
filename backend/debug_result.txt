@@ -1,0 +1,10 @@
+Driver: postgresql+asyncpg
+User: postgres
+Host: 50065@db.mevuclijgmvpulzagjlh.supabase.co
+Port: 5432
+Database: postgres
+
+[ERROR] Host mismatch!
+Expected: 'db.mevuclijgmvpulzagjlh.supabase.co'
+Found:    '50065@db.mevuclijgmvpulzagjlh.supabase.co'
+Check for spaces or unescaped special characters (like @, :, /) in your password.
