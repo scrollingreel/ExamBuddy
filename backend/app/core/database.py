@@ -7,7 +7,18 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./exambuddy.db")
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+# Handle Supabase pooled connection which uses port 6543 (transaction) or 5432 (session)
+# and requires SSL.
+connect_args = {}
+if "postgresql" in DATABASE_URL:
+    connect_args["ssl"] = "require"
+
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,
+    connect_args=connect_args
+)
 
 SessionLocal = sessionmaker(
     bind=engine,
