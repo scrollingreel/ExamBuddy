@@ -21,7 +21,20 @@ if "postgresql" in DATABASE_URL:
         try:
             from sqlalchemy.engine.url import make_url
             url_obj = make_url(DATABASE_URL)
-            print(f"Attempting DB Connection -> Host: {url_obj.host}, Port: {url_obj.port}, Database: {url_obj.database}")
+            print(f"Original DB URL -> Host: {url_obj.host}, Port: {url_obj.port}")
+
+            # Force IPv4 Resolution to avoid [Errno 101] Network is unreachable on Render/Supabase
+            import socket
+            try:
+                # Resolve hostname to IPv4 address
+                ipv4_address = socket.gethostbyname(url_obj.host)
+                print(f"Resolved {url_obj.host} to {ipv4_address}")
+                
+                 # Replace hostname with IPv4 in the DATABASE_URL
+                DATABASE_URL = DATABASE_URL.replace(url_obj.host, ipv4_address)
+            except Exception as e:
+                print(f"IPv4 Resolution failed: {e}")
+
         except Exception as e:
             print(f"Could not parse DB URL for logging: {e}")
 
