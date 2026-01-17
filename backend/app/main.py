@@ -16,8 +16,11 @@ from .models import models
 
 @app.on_event("startup")
 async def startup_db_client():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        print(f"Startup DB Connection Failed: {e}")
 
 # CORS Middleware
 app.add_middleware(
@@ -73,7 +76,11 @@ async def debug_network():
         # DNS Resolution
         try:
             ip = socket.gethostbyname(host)
-            results["dns_resolution"] = ip
+            results["dns_resolution_ipv4"] = ip
+            
+            # Check for all addresses (IPv4 and IPv6)
+            addr_info = socket.getaddrinfo(host, port)
+            results["dns_all_results"] = str(addr_info)
         except Exception as e:
             results["dns_resolution_error"] = str(e)
             return results
