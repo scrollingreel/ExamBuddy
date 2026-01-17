@@ -7,6 +7,7 @@ export interface UserProfile {
     full_name: string;
     semester: number;
     sgpa: number;
+    role: string;
 }
 
 export function useProfile() {

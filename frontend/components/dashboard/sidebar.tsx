@@ -17,7 +17,6 @@ const sidebarItems = [
     { href: "/dashboard/leaderboard", icon: Trophy, label: "Leaderboard" },
     { href: "/dashboard/subscription", icon: CreditCard, label: "Subscription" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
-    { href: "/admin/settings", icon: Settings, label: "Admin Settings" }, // Add this if user is admin (we'll filter later)
 ];
 
 interface SidebarContentProps {
@@ -29,10 +28,20 @@ export function SidebarContent({ className, onLinkClick }: SidebarContentProps) 
     const pathname = usePathname();
     const { user, isGuest } = useProfile();
 
-    // Filter items for guest
-    const filteredItems = isGuest
-        ? sidebarItems.filter(item => ["/dashboard", "/dashboard/notes", "/dashboard/sessional-papers", "/dashboard/university-papers"].includes(item.href))
-        : sidebarItems;
+    // Filter items based on guest/auth status
+    let displayItems = [...sidebarItems];
+
+    if (isGuest) {
+        displayItems = displayItems.filter(item => ["/dashboard", "/dashboard/notes", "/dashboard/sessional-papers", "/dashboard/university-papers"].includes(item.href));
+    }
+
+    // Add Admin Settings ONLY if user is ADMIN
+    if (user?.role === "ADMIN") {
+        displayItems.push({ href: "/admin/settings", icon: Settings, label: "Admin Settings" });
+    }
+
+    // Use displayItems instead of filteredItems in the loop below
+    const filteredItems = displayItems;
 
     return (
         <div className={cn("flex h-full flex-col gap-2", className)}>
