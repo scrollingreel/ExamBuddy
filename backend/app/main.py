@@ -1,11 +1,23 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import traceback
 
 app = FastAPI(
     title="ExamBuddy API",
     description="Backend for ExamBuddy Web Platform",
     version="1.0.0"
 )
+
+# Startup: Create Tables
+from .core.database import engine, Base
+# Import models to ensure they are registered
+from .models import models 
+
+@app.on_event("startup")
+async def startup_db_client():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 # CORS Middleware
 app.add_middleware(
@@ -15,6 +27,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global Exception Handler to ensure CORS headers are sent even on 500 errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_msg = str(exc)
+    print(f"Global Exception: {error_msg}")
+    traceback.print_exc()
+    
+    return JSONResponse(
+        status_code=500,
+        content={"detail": error_msg, "type": type(exc).__name__},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
 
 from fastapi.staticfiles import StaticFiles
 import os

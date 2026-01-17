@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./exambuddy.db")
+# Fix for Render/Heroku providing "postgres://" instead of "postgresql://"
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Robust SSL handling for Supabase/Asyncpg
 import ssl
