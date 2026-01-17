@@ -19,6 +19,7 @@ class NoteCreate(NoteBase):
 class NoteUpdate(BaseModel):
     status: Optional[str] = None
     title: Optional[str] = None
+    is_premium: Optional[bool] = None
 
 class NoteResponse(NoteBase):
     id: UUID

@@ -523,6 +523,8 @@ async def update_note(
         note.title = note_update.title
     if note_update.status is not None:
         note.status = note_update.status
+    if note_update.is_premium is not None:
+        note.is_premium = note_update.is_premium
     # Add other fields as needed from NoteUpdate schema
         
     await db.commit()
