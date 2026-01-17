@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from ..core.database import get_db
-from ..models.models import User, Subscription, SubscriptionPlan, UserRole
+from ..models.models import User, Subscription, SubscriptionPlan, UserRole, SystemSetting
+
 from .deps import get_current_user
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -29,18 +30,29 @@ class PaymentVerify(BaseModel):
 @router.post("/create-order")
 async def create_subscription_order(
     sub_data: SubscriptionCreate,
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
         raise HTTPException(status_code=500, detail="Payment gateway not configured")
 
     client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
-    amount = 9900 # default: 99 INR
+    # Fetch dynamic prices
+    semester_setting = await db.execute(select(SystemSetting).filter(SystemSetting.key == "semester_price"))
+    yearly_setting = await db.execute(select(SystemSetting).filter(SystemSetting.key == "yearly_price"))
+    
+    sem_price = semester_setting.scalars().first()
+    year_price = yearly_setting.scalars().first()
+    
+    semester_amount = int(float(sem_price.value) * 100) if sem_price else 49900
+    yearly_amount = int(float(year_price.value) * 100) if year_price else 99900
+
+    amount = 9900 
     if sub_data.plan_type == SubscriptionPlan.SEMESTER:
-        amount = 49900 # 499 INR
+        amount = semester_amount
     elif sub_data.plan_type == SubscriptionPlan.YEARLY:
-        amount = 99900 # 999 INR
+        amount = yearly_amount
     
     data = {
         "amount": amount,
