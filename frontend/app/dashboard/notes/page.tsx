@@ -369,29 +369,34 @@ export default function NotesPage() {
                                                 <Book className="mr-2 h-4 w-4" /> Unlock
                                             </a>
                                         </Button>
-                                    ) : note.is_premium ? (
-                                        <Button
-                                            variant="default"
-                                            size="sm"
-                                            onClick={() => setViewingNote(note)}
-                                        >
-                                            <Eye className="mr-2 h-4 w-4" /> View
-                                        </Button>
                                     ) : (
-                                        <Button variant="outline" size="sm" asChild onClick={() => {
-                                            // Trigger download tracking
-                                            const token = localStorage.getItem("token");
-                                            if (token) {
-                                                fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
-                                                    method: "POST",
-                                                    headers: { Authorization: `Bearer ${token}` }
-                                                }).catch(console.error);
-                                            }
-                                        }}>
-                                            <a href={note.file_url} target="_blank" rel="noopener noreferrer">
-                                                <Download className="mr-2 h-4 w-4" /> Download
-                                            </a>
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            {/* For premium notes, we can still offer View if desired, but user asked for Download */}
+                                            {note.is_premium && (
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => setViewingNote(note)}
+                                                >
+                                                    <Eye className="mr-2 h-4 w-4" /> View
+                                                </Button>
+                                            )}
+
+                                            <Button variant={note.is_premium ? "default" : "outline"} size="sm" asChild onClick={() => {
+                                                // Trigger download tracking
+                                                const token = localStorage.getItem("token");
+                                                if (token) {
+                                                    fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
+                                                        method: "POST",
+                                                        headers: { Authorization: `Bearer ${token}` }
+                                                    }).catch(console.error);
+                                                }
+                                            }}>
+                                                <a href={note.file_url} target="_blank" rel="noopener noreferrer">
+                                                    <Download className="mr-2 h-4 w-4" /> Download
+                                                </a>
+                                            </Button>
+                                        </div>
                                     )}
                                 </div>
                             </CardFooter>
