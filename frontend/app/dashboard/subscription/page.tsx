@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useScript } from "@/hooks/use-script"; // We'll create this or just inline
+import { useScript } from "@/hooks/use-script";
 import { API_BASE_URL } from "@/lib/config";
 
 interface RazorpayOrder {
@@ -17,6 +17,25 @@ interface RazorpayOrder {
 
 export default function SubscriptionPage() {
     const [loading, setLoading] = useState<string | null>(null);
+    const [prices, setPrices] = useState({ semester: 499, yearly: 999 });
+
+    useEffect(() => {
+        const fetchPrices = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/admin/public-config`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setPrices({
+                        semester: data.semester_price || 499,
+                        yearly: data.yearly_price || 999
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load prices", error);
+            }
+        };
+        fetchPrices();
+    }, []);
 
     const loadRazorpay = () => {
         return new Promise((resolve) => {
@@ -122,7 +141,7 @@ export default function SubscriptionPage() {
                         <CardDescription>Perfect for current exam prep</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="text-4xl font-bold">₹499<span className="text-lg font-normal text-muted-foreground">/sem</span></div>
+                        <div className="text-4xl font-bold">₹{prices.semester}<span className="text-lg font-normal text-muted-foreground">/sem</span></div>
                         <ul className="space-y-2">
                             <li className="flex items-center gap-2"><Check className="text-green-500 h-4 w-4" /> Full Access to Notes</li>
                             <li className="flex items-center gap-2"><Check className="text-green-500 h-4 w-4" /> AI Professor Access</li>
@@ -150,7 +169,7 @@ export default function SubscriptionPage() {
                         <CardDescription>Best value for serious students</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="text-4xl font-bold">₹99<span className="text-lg font-normal text-muted-foreground">/year</span></div>
+                        <div className="text-4xl font-bold">₹{prices.yearly}<span className="text-lg font-normal text-muted-foreground">/year</span></div>
                         <ul className="space-y-2">
                             <li className="flex items-center gap-2"><Check className="text-green-500 h-4 w-4" /> All Semester Features</li>
                             <li className="flex items-center gap-2"><Check className="text-green-500 h-4 w-4" /> Priority Support</li>

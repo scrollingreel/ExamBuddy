@@ -17,6 +17,7 @@ const sidebarItems = [
     { href: "/dashboard/leaderboard", icon: Trophy, label: "Leaderboard" },
     { href: "/dashboard/subscription", icon: CreditCard, label: "Subscription" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+    { href: "/admin/settings", icon: Settings, label: "Admin Settings" }, // Add this if user is admin (we'll filter later)
 ];
 
 interface SidebarContentProps {
