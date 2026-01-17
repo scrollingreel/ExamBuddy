@@ -8,3 +8,4 @@ bcrypt
 email-validator
 supabase
 razorpay
+python-dotenv
