@@ -157,7 +157,8 @@ export default function AdminNotesPage() {
             });
             if (res.ok) {
                 setIsEditOpen(false);
-                fetchNotes();
+                setNotes(notes.map(n => n.id === selectedNote.id ? { ...n, title: formData.title, is_premium: formData.is_premium } : n));
+                fetchNotes(); // ensure sync
             } else {
                 alert("Update failed");
             }
