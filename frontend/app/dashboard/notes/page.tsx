@@ -371,16 +371,14 @@ export default function NotesPage() {
                                         </Button>
                                     ) : (
                                         <div className="flex gap-2">
-                                            {/* For premium notes, we can still offer View if desired, but user asked for Download */}
-                                            {note.is_premium && (
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    onClick={() => setViewingNote(note)}
-                                                >
-                                                    <Eye className="mr-2 h-4 w-4" /> View
-                                                </Button>
-                                            )}
+                                            {/* Show View button for ALL notes that are not locked */}
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => setViewingNote(note)}
+                                            >
+                                                <Eye className="mr-2 h-4 w-4" /> View
+                                            </Button>
 
                                             <Button variant={note.is_premium ? "default" : "outline"} size="sm" asChild onClick={() => {
                                                 // Trigger download tracking
