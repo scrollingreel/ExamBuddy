@@ -45,7 +45,7 @@ async def create_subscription_order(
     data = {
         "amount": amount,
         "currency": "INR",
-        "receipt": f"rcpt_{user.id}_{uuid.uuid4().hex[:6]}",
+        "receipt": f"rcpt_{uuid.uuid4().hex[:12]}",
         "notes": {
             "user_id": str(user.id),
             "plan": sub_data.plan_type
