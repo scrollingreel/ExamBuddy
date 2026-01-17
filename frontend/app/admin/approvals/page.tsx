@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Check, X, FileText, Loader2, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Note {
     id: string;
@@ -34,7 +35,7 @@ export default function ApprovalsPage() {
     const fetchPendingNotes = async () => {
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch("http://127.0.0.1:8000/notes/pending", {
+            const res = await fetch(`${API_BASE_URL}/notes/pending`, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -62,7 +63,7 @@ export default function ApprovalsPage() {
     const handleAction = async (noteId: string, action: "approve" | "reject") => {
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch(`http://127.0.0.1:8000/notes/${noteId}/verify?action=${action}`, {
+            const res = await fetch(`${API_BASE_URL}/notes/${noteId}/verify?action=${action}`, {
                 method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${token}`
