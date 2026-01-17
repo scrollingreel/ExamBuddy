@@ -11,14 +11,16 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password, hashed_password):
-    if len(plain_password.encode('utf-8')) > 72:
-        plain_password = plain_password[:72]
+    encoded = plain_password.encode('utf-8')
+    if len(encoded) > 72:
+        plain_password = encoded[:72].decode('utf-8', errors='ignore')
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
     # Bcrypt has a 72 byte limit. Truncate if necessary (rare for real users, but good for stability)
-    if len(password.encode('utf-8')) > 72:
-        password = password[:72]
+    encoded = password.encode('utf-8')
+    if len(encoded) > 72:
+        password = encoded[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
