@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
 from uuid import UUID
+import uuid
 from ..core.database import get_db
 from ..models.models import Note, User, NoteStatus, UserRole, Vote, Review
 from ..schemas.note import NoteResponse, NoteList, NoteUpdate
