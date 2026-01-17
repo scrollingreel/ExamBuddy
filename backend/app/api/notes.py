@@ -542,8 +542,6 @@ async def delete_note(
         
     await db.delete(note)
     await db.commit()
-    await db.delete(note)
-    await db.commit()
     return {"message": "Note deleted successfully"}
 
 from sqlalchemy import func
