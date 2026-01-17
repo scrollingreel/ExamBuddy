@@ -70,7 +70,10 @@ export default function NotesPage() {
     useEffect(() => {
         const init = async () => {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                fetchNotes();
+                return;
+            }
 
             try {
                 // Fetch Profile

@@ -10,7 +10,7 @@ import { LayoutDashboard, BookOpen, Settings, CreditCard, LogOut, Trophy, FileTe
 
 const sidebarItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Overview" },
-    { href: "/dashboard/notes", icon: BookOpen, label: "My Notes" },
+    { href: "/dashboard/notes", icon: BookOpen, label: "Notes Library" },
     { href: "/dashboard/sessional-papers", icon: FileText, label: "Sessional Papers" },
     { href: "/dashboard/university-papers", icon: GraduationCap, label: "University Papers" },
 
@@ -54,7 +54,7 @@ export function Sidebar() {
 
     // Filter items for guest
     const filteredItems = isGuest
-        ? sidebarItems.filter(item => ["/dashboard", "/dashboard/sessional-papers", "/dashboard/university-papers"].includes(item.href))
+        ? sidebarItems.filter(item => ["/dashboard", "/dashboard/notes", "/dashboard/sessional-papers", "/dashboard/university-papers"].includes(item.href))
         : sidebarItems;
 
     return (
