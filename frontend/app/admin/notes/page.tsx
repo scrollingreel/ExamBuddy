@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Edit, FileText, ExternalLink, Loader2, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Note {
     id: string;
@@ -67,7 +68,7 @@ export default function AdminNotesPage() {
     const fetchNotes = async () => {
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch("http://127.0.0.1:8000/notes/admin/all", {
+            const res = await fetch(`${API_BASE_URL}/notes/admin/all`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -90,7 +91,7 @@ export default function AdminNotesPage() {
 
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch(`http://127.0.0.1:8000/notes/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/notes/${id}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -118,7 +119,7 @@ export default function AdminNotesPage() {
         if (file) data.append("file", file);
 
         try {
-            const res = await fetch("http://127.0.0.1:8000/notes/upload", {
+            const res = await fetch(`${API_BASE_URL}/notes/upload`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${token}` },
                 body: data
@@ -142,7 +143,7 @@ export default function AdminNotesPage() {
 
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch(`http://127.0.0.1:8000/notes/${selectedNote.id}`, {
+            const res = await fetch(`${API_BASE_URL}/notes/${selectedNote.id}`, {
                 method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${token}`,
