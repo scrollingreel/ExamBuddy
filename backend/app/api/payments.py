@@ -1,3 +1,5 @@
+import os
+import razorpay
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -7,14 +9,13 @@ from .deps import get_current_user
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 import uuid
-import hmac
-import hashlib
 
 router = APIRouter()
 
-# Mock Razorpay credentials
-RAZORPAY_KEY_ID = "rzp_test_12345678"
-RAZORPAY_KEY_SECRET = "supersecretrazorpay"
+# Initialize Razorpay Client
+# Credentials should be in .env
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 class SubscriptionCreate(BaseModel):
     plan_type: SubscriptionPlan
@@ -30,19 +31,37 @@ async def create_subscription_order(
     sub_data: SubscriptionCreate,
     user: User = Depends(get_current_user)
 ):
-    # In a real app, call Razorpay API to create an order
-    order_id = f"order_{uuid.uuid4().hex[:10]}"
-    
-    amount = 9900 # default MONTHLY
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise HTTPException(status_code=500, detail="Payment gateway not configured")
+
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
+    amount = 9900 # default: 99 INR
     if sub_data.plan_type == SubscriptionPlan.SEMESTER:
-        amount = 49900
+        amount = 49900 # 499 INR
     elif sub_data.plan_type == SubscriptionPlan.YEARLY:
-        amount = 99900
+        amount = 99900 # 999 INR
     
-    return {
-        "order_id": order_id,
+    data = {
         "amount": amount,
         "currency": "INR",
+        "receipt": f"rcpt_{user.id}_{uuid.uuid4().hex[:6]}",
+        "notes": {
+            "user_id": str(user.id),
+            "plan": sub_data.plan_type
+        }
+    }
+    
+    try:
+        order = client.order.create(data=data)
+    except Exception as e:
+        print(f"Razorpay Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create payment order")
+    
+    return {
+        "order_id": order["id"],
+        "amount": order["amount"],
+        "currency": order["currency"],
         "key_id": RAZORPAY_KEY_ID,
         "plan": sub_data.plan_type
     }
@@ -53,16 +72,20 @@ async def verify_payment(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    # Verify signature
-    msg = f"{data.razorpay_order_id}|{data.razorpay_payment_id}"
-    generated_signature = hmac.new(
-        RAZORPAY_KEY_SECRET.encode(),
-        msg.encode(),
-        hashlib.sha256
-    ).hexdigest()
-    
-    # In a real app: if generated_signature != data.razorpay_signature: raise Exception
-    # For simulation, we assume success if provided
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise HTTPException(status_code=500, detail="Payment gateway not configured")
+
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
+    try:
+        # Verify signature
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': data.razorpay_order_id,
+            'razorpay_payment_id': data.razorpay_payment_id,
+            'razorpay_signature': data.razorpay_signature
+        })
+    except razorpay.errors.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Payment signature verification failed")
     
     # Calculate end date
     now = datetime.utcnow()
@@ -79,7 +102,7 @@ async def verify_payment(
     )
     
     db.add(new_sub)
-    user.is_premium = True
+    user.is_premium = True # Activate premium for user
     
     await db.commit()
     return {"status": "success", "message": "Premium activated"}

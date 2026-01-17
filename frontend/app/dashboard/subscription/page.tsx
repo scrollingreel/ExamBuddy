@@ -5,6 +5,7 @@ import { Check, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useScript } from "@/hooks/use-script"; // We'll create this or just inline
+import { API_BASE_URL } from "@/lib/config";
 
 interface RazorpayOrder {
     order_id: string;
@@ -41,7 +42,7 @@ export default function SubscriptionPage() {
             }
 
             // 2. Create Order
-            const res = await fetch("http://127.0.0.1:8000/subscription/create-order", {
+            const res = await fetch(`${API_BASE_URL}/subscription/create-order`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -63,7 +64,7 @@ export default function SubscriptionPage() {
                 order_id: data.order_id,
                 handler: async function (response: any) {
                     // Verify Payment
-                    const verifyRes = await fetch("http://127.0.0.1:8000/subscription/verify-payment", {
+                    const verifyRes = await fetch(`${API_BASE_URL}/subscription/verify-payment`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
