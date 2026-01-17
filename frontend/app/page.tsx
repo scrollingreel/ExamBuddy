@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950 font-sans">
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2 font-bold text-xl text-primary">
             <div className="bg-indigo-600 rounded-lg p-1 text-white">
               <BookOpen className="h-5 w-5" />
@@ -42,7 +42,7 @@ export default function Home() {
           {/* Background Gradients */}
           <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-slate-950 [background:radial-gradient(125%_125%_at_50%_10%,#fff_40%,#63e_100%)] dark:[background:radial-gradient(125%_125%_at_50%_10%,#020617_40%,#312e81_100%)] opacity-70"></div>
 
-          <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
+          <div className="container mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center px-4">
             <div className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 backdrop-blur-sm">
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               <span>Exam Preparation Made Easy</span>
@@ -83,43 +83,45 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="container space-y-12 py-12 md:py-24 lg:py-32 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-            <h2 className="font-heading text-3xl leading-[1.1] sm:text-4xl md:text-5xl font-bold tracking-tight">
-              Everything Your Semester Needs
-            </h2>
-            <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Stop searching through WhatsApp groups. Get verified materials in one place.
-            </p>
-          </div>
-          <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 lg:grid-cols-4 md:max-w-[70rem]">
-            <FeatureCard
-              icon={<BookOpen className="h-8 w-8 text-blue-500" />}
-              title="Verified Notes"
-              description="Access high-quality, admin-approved notes specific to your university and branch."
-            />
-            <FeatureCard
-              icon={<Brain className="h-8 w-8 text-purple-500" />}
-              title="AI Tutor"
-              description="Stuck on an assignment? Our AI chatbot explains answers step-by-step instantly."
-            />
-            <FeatureCard
-              icon={<ShieldCheck className="h-8 w-8 text-green-500" />}
-              title="Exam Updates"
-              description="Never miss a circular or exam schedule update again with real-time notifications."
-            />
-            <FeatureCard
-              icon={<Sparkles className="h-8 w-8 text-amber-500" />}
-              title="Premium PYQs"
-              description="Unlock previous year question papers and sessional tests with our premium plan."
-            />
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="container mx-auto space-y-12 px-4 md:px-6">
+            <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+              <h2 className="font-heading text-3xl leading-[1.1] sm:text-4xl md:text-5xl font-bold tracking-tight">
+                Everything Your Semester Needs
+              </h2>
+              <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+                Stop searching through WhatsApp groups. Get verified materials in one place.
+              </p>
+            </div>
+            <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 lg:grid-cols-4 md:max-w-[70rem]">
+              <FeatureCard
+                icon={<BookOpen className="h-8 w-8 text-blue-500" />}
+                title="Verified Notes"
+                description="Access high-quality, admin-approved notes specific to your university and branch."
+              />
+              <FeatureCard
+                icon={<Brain className="h-8 w-8 text-purple-500" />}
+                title="AI Tutor"
+                description="Stuck on an assignment? Our AI chatbot explains answers step-by-step instantly."
+              />
+              <FeatureCard
+                icon={<ShieldCheck className="h-8 w-8 text-green-500" />}
+                title="Exam Updates"
+                description="Never miss a circular or exam schedule update again with real-time notifications."
+              />
+              <FeatureCard
+                icon={<Sparkles className="h-8 w-8 text-amber-500" />}
+                title="Premium PYQs"
+                description="Unlock previous year question papers and sessional tests with our premium plan."
+              />
+            </div>
           </div>
         </section>
 
         {/* Call to Action */}
         <section className="py-20 bg-indigo-900 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-          <div className="container relative z-10 text-center space-y-6">
+          <div className="container mx-auto relative z-10 text-center space-y-6 px-4">
             <h2 className="text-3xl md:text-4xl font-bold">Ready to Ace Your Exams?</h2>
             <p className="text-indigo-200 max-w-2xl mx-auto text-lg">Join thousands of students who are changing the way they study. Get started for free today.</p>
             <Link href="/register">
@@ -131,7 +133,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="border-t py-8 bg-white dark:bg-slate-950">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div className="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2 font-bold text-xl">
             <BookOpen className="h-5 w-5 text-indigo-600" />
             <span>ExamBuddy</span>
