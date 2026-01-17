@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://exambuddy-ymor.onrender.com' // Replace with your actual frontend domain if different
+    const baseUrl = 'https://exam-buddy-4h5n.vercel.app' // Replace with your actual frontend domain if different
 
     return [
         {

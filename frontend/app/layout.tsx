@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IE",
-    url: "https://exambuddy-ymor.onrender.com", // Or your Vercel URL
+    url: "https://exam-buddy-4h5n.vercel.app", // Or your Vercel URL
     title: "ExamBuddy - Collaborative Study Platform",
     description: "Share notes, track progress, and ace your exams with ExamBuddy.",
     siteName: "ExamBuddy",

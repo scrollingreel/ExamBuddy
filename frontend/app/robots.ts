@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/dashboard/settings', '/admin/'], // Hide private areas/admin
         },
-        sitemap: 'https://exambuddy-ymor.onrender.com/sitemap.xml',
+        sitemap: 'https://exam-buddy-4h5n.vercel.app/sitemap.xml',
     }
 }
