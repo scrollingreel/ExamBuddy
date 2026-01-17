@@ -22,11 +22,15 @@ const sidebarItems = [
 export function Sidebar() {
     const pathname = usePathname();
     const [user, setUser] = useState<{ full_name: string; semester: number; sgpa: number } | null>(null);
+    const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                setIsGuest(true);
+                return;
+            }
             try {
                 const res = await fetch(`${API_BASE_URL}/auth/me`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -34,13 +38,24 @@ export function Sidebar() {
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data);
+                    setIsGuest(false);
+                } else {
+                    // Token invalid
+                    setIsGuest(true);
+                    localStorage.removeItem("token");
                 }
             } catch (error) {
                 console.error("Failed to fetch profile", error);
+                setIsGuest(true);
             }
         };
         fetchProfile();
     }, []);
+
+    // Filter items for guest
+    const filteredItems = isGuest
+        ? sidebarItems.filter(item => ["/dashboard", "/dashboard/sessional-papers", "/dashboard/university-papers"].includes(item.href))
+        : sidebarItems;
 
     return (
         <div className="hidden border-r bg-slate-50/40 dark:bg-slate-950/40 md:block md:w-64">
@@ -53,7 +68,7 @@ export function Sidebar() {
                 </div>
 
                 {/* Profile Widget */}
-                {user && (
+                {user ? (
                     <div className="mx-4 mt-4 rounded-lg border bg-white p-4 shadow-sm dark:bg-slate-950">
                         <div className="mb-2 font-medium">{user.full_name || "Student"}</div>
                         <div className="text-xs text-muted-foreground grid grid-cols-2 gap-2">
@@ -70,11 +85,19 @@ export function Sidebar() {
                             View Full Profile
                         </Link>
                     </div>
+                ) : (
+                    <div className="mx-4 mt-4 rounded-lg border bg-white p-4 shadow-sm dark:bg-slate-950">
+                        <div className="mb-2 font-medium">Guest Student</div>
+                        <p className="text-xs text-muted-foreground">Sign in to track progress and sync notes.</p>
+                        <Link href="/login" className="mt-3 block text-xs text-blue-600 hover:underline">
+                            Sign In / Register
+                        </Link>
+                    </div>
                 )}
 
                 <div className="flex-1 overflow-auto py-2">
                     <nav className="grid items-start px-4 text-sm font-medium">
-                        {sidebarItems.map((item) => (
+                        {filteredItems.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
@@ -93,14 +116,24 @@ export function Sidebar() {
                     </nav>
                 </div>
                 <div className="mt-auto p-4 border-t">
-                    <Link
-                        href="/login"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-all hover:text-red-500"
-                        onClick={() => localStorage.removeItem("token")}
-                    >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
-                    </Link>
+                    {isGuest ? (
+                        <Link
+                            href="/login"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-all hover:text-blue-600"
+                        >
+                            <LogOut className="h-4 w-4 rotate-180" />
+                            Sign In
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-all hover:text-red-500"
+                            onClick={() => localStorage.removeItem("token")}
+                        >
+                            <LogOut className="h-4 w-4" />
+                            Sign Out
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>

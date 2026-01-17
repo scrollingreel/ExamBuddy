@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Book, Clock, Star, TrendingUp } from "lucide-react";
 
@@ -24,20 +26,20 @@ export default function DashboardPage() {
             try {
                 const token = localStorage.getItem("token");
                 // Fetch Circulars
-                const circularRes = await fetch("http://127.0.0.1:8000/circulars/");
+                const circularRes = await fetch(`${API_BASE_URL}/circulars/`);
                 if (circularRes.ok) {
                     setCirculars(await circularRes.json());
                 }
 
                 // Fetch Recent Notes (Limit 5)
-                const notesRes = await fetch("http://127.0.0.1:8000/notes/?limit=5");
+                const notesRes = await fetch(`${API_BASE_URL}/notes/?limit=5`);
                 if (notesRes.ok) {
                     setRecentNotes(await notesRes.json());
                 }
 
                 // Fetch Profile
                 if (token) {
-                    const profileRes = await fetch("http://127.0.0.1:8000/auth/me", {
+                    const profileRes = await fetch(`${API_BASE_URL}/auth/me`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (profileRes.ok) {

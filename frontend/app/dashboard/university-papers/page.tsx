@@ -67,7 +67,10 @@ export default function UniversityPapersPage() {
     useEffect(() => {
         const init = async () => {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                fetchNotes();
+                return;
+            }
 
             try {
                 // Fetch Profile

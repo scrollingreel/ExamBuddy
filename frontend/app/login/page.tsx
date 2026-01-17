@@ -112,6 +112,15 @@ export default function LoginPage() {
                             Sign up
                         </Link>
                     </div>
+                    <div className="text-center text-sm text-slate-500 dark:text-slate-400">
+                        Or{" "}
+                        <Link
+                            href="/dashboard"
+                            className="font-semibold text-slate-900 underline hover:no-underline dark:text-slate-50"
+                        >
+                            Continue as Guest
+                        </Link>
+                    </div>
                 </CardFooter>
             </Card>
         </div>
