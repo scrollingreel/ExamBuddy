@@ -150,6 +150,7 @@ async def list_notes(
         }
         
         if note.is_premium:
+            # If user is None (Guest) OR user is not premium --> LOCK IT
             if not user or not user.is_premium:
                 note_dict["file_url"] = "LOCKED"
         
