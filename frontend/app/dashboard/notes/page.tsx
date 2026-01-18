@@ -348,7 +348,7 @@ export default function NotesPage() {
                                     </span>
                                 </div>
                             </CardContent>
-                            <CardFooter className="flex justify-between gap-2 border-t pt-3">
+                            <CardFooter className="flex flex-wrap justify-between gap-2 border-t pt-3">
                                 {/* Interactions */}
                                 <VoteControl
                                     noteId={note.id}

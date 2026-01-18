@@ -19,7 +19,7 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl }: NoteViewerProps)
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-4">
+            <DialogContent className="w-[95vw] sm:max-w-4xl h-[80dvh] md:h-[85vh] flex flex-col p-4">
                 <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
                     <DialogTitle className="line-clamp-1 pr-8">{title}</DialogTitle>
                 </DialogHeader>

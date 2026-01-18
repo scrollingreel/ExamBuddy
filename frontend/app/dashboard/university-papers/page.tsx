@@ -368,7 +368,7 @@ export default function UniversityPapersPage() {
                                     </span>
                                 </div>
                             </CardContent>
-                            <CardFooter>
+                            <CardFooter className="flex flex-wrap justify-between gap-2 border-t pt-3">
                                 {note.file_url === "LOCKED" ? (
                                     <Button variant="secondary" className="w-full bg-amber-100 text-amber-900 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-100" asChild>
                                         <a href="/dashboard/subscription">
