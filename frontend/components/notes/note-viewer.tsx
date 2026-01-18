@@ -31,13 +31,7 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
                 <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
                     <DialogTitle className="line-clamp-1 pr-8 text-base">{title}</DialogTitle>
                     <div className="flex gap-2">
-                        {!isPremium && (
-                            <Button variant="ghost" size="sm" asChild className="h-8">
-                                <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-                                    Open Original
-                                </a>
-                            </Button>
-                        )}
+                        {/* Open Original button removed per user request */}
                     </div>
                 </DialogHeader>
                 <div className="flex-1 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden rounded-md relative group">
