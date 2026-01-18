@@ -403,6 +403,7 @@ export default function UniversityPapersPage() {
                     onClose={() => setViewingNote(null)}
                     title={viewingNote.title}
                     fileUrl={viewingNote.file_url}
+                    isPremium={viewingNote.is_premium}
                 />
             )}
         </div>
