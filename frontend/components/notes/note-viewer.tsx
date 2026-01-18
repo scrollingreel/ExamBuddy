@@ -15,13 +15,27 @@ interface NoteViewerProps {
 }
 
 export function NoteViewer({ isOpen, onClose, title, fileUrl }: NoteViewerProps) {
-    const isPdf = fileUrl.toLowerCase().endsWith(".pdf");
+    const isPdf = fileUrl.toLowerCase().includes(".pdf");
+    const isLocal = fileUrl.includes("localhost") || fileUrl.includes("127.0.0.1");
+
+    // On mobile, native PDF viewing in iframe often fails (shows white).
+    // accessible public URLs work best with Google Docs Viewer.
+    const pdfViewerUrl = isPdf && !isLocal
+        ? `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`
+        : `${fileUrl}#toolbar=0`;
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="w-[95vw] sm:max-w-4xl h-[80dvh] md:h-[85vh] flex flex-col p-4">
                 <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
-                    <DialogTitle className="line-clamp-1 pr-8">{title}</DialogTitle>
+                    <DialogTitle className="line-clamp-1 pr-8 text-base">{title}</DialogTitle>
+                    <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" asChild className="h-8">
+                            <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                Open Original
+                            </a>
+                        </Button>
+                    </div>
                 </DialogHeader>
                 <div className="flex-1 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden rounded-md relative group">
                     {/* Security overlay to prevent simple right-click save on images */}
@@ -31,7 +45,7 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl }: NoteViewerProps)
 
                     {isPdf ? (
                         <iframe
-                            src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                            src={pdfViewerUrl}
                             className="w-full h-full border-0"
                             title={title}
                         />
