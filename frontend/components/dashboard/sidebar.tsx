@@ -26,7 +26,7 @@ interface SidebarContentProps {
 
 export function SidebarContent({ className, onLinkClick }: SidebarContentProps) {
     const pathname = usePathname();
-    const { user, isGuest } = useProfile();
+    const { user, isGuest, loading } = useProfile();
 
     // Filter items based on guest/auth status
     let displayItems = [...sidebarItems];
@@ -53,7 +53,15 @@ export function SidebarContent({ className, onLinkClick }: SidebarContentProps) 
             </div>
 
             {/* Profile Widget */}
-            {user ? (
+            {loading ? (
+                <div className="mx-4 mt-4 rounded-lg border bg-white p-4 shadow-sm dark:bg-slate-950 animate-pulse">
+                    <div className="h-4 w-3/4 bg-slate-200 rounded mb-2 dark:bg-slate-800"></div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="h-8 bg-slate-200 rounded dark:bg-slate-800"></div>
+                        <div className="h-8 bg-slate-200 rounded dark:bg-slate-800"></div>
+                    </div>
+                </div>
+            ) : user ? (
                 <div className="mx-4 mt-4 rounded-lg border bg-white p-4 shadow-sm dark:bg-slate-950">
                     <div className="mb-2 font-medium">{user.full_name || "Student"}</div>
                     <div className="text-xs text-muted-foreground grid grid-cols-2 gap-2">
