@@ -46,6 +46,11 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
                         <div className="absolute inset-0 z-10 bg-transparent" onContextMenu={(e) => e.preventDefault()} />
                     )}
 
+                    {/* Block Google Docs Viewer 'Pop-out' button for Premium Notes to prevent easy download */}
+                    {isPdf && isPremium && (
+                        <div className="absolute top-0 right-0 h-14 w-14 z-20 bg-transparent" />
+                    )}
+
                     {isPdf ? (
                         <iframe
                             src={pdfViewerUrl}
