@@ -30,18 +30,36 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Verify Supabase Token
+    from ..core.supabase_client import supabase
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        user_response = supabase.auth.get_user(token)
+        if not user_response or not user_response.user:
             raise credentials_exception
-    except JWTError:
+        email = user_response.user.email
+    except Exception:
+        # Fallback to old JWT logic if Supabase verify fails (for backward compat if needed, or just fail)
+        # But since we switched frontend, we should primarily trust Supabase.
+        # If headers are missing, Supabase client might raise or return error.
         raise credentials_exception
-        
+
+    # Check against local DB
     result = await db.execute(select(User).filter(User.email == email))
     user = result.scalars().first()
+    
     if user is None:
-        raise credentials_exception
+        # Lazy creation of user in our DB
+        # We need a dummy password as the column is nullable=False
+        user = User(
+            email=email, 
+            hashed_password="supabase_otp_managed",
+            role=UserRole.STUDENT
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        
     return user
 
 async def get_current_admin(user: User = Depends(get_current_user)):
