@@ -17,6 +17,13 @@ from .models import models
 @app.on_event("startup")
 async def startup_db_client():
     try:
+        # Debug Supabase Config
+        import os
+        sb_url = os.getenv("SUPABASE_URL", "NOT_SET")
+        sb_key = os.getenv("SUPABASE_KEY", "NOT_SET")
+        print(f"DEBUG: Startup - Supabase URL: {sb_url[:20]}...")
+        print(f"DEBUG: Startup - Supabase Key: {sb_key[:10]}...")
+        
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     except Exception as e:
