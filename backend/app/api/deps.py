@@ -34,11 +34,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     # Verify Supabase Token
     from ..core.supabase_client import supabase
     try:
+        # print(f"DEBUG: Verifying token: {token[:10]}...") 
         user_response = supabase.auth.get_user(token)
+        # print(f"DEBUG: Supabase response: {user_response}")
         if not user_response or not user_response.user:
+            print("DEBUG: No user in Supabase response")
             raise credentials_exception
         email = user_response.user.email
-    except Exception:
+        # print(f"DEBUG: Backend verified email: {email}")
+    except Exception as e:
+        print(f"DEBUG: Supabase verification failed: {e}")
         # Fallback to old JWT logic if Supabase verify fails (for backward compat if needed, or just fail)
         # But since we switched frontend, we should primarily trust Supabase.
         # If headers are missing, Supabase client might raise or return error.

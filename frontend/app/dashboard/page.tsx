@@ -39,12 +39,19 @@ export default function DashboardPage() {
 
                 // Fetch Profile
                 if (token) {
+                    console.log("Fetching profile with token:", token.substring(0, 10) + "...");
                     const profileRes = await fetch(`${API_BASE_URL}/auth/me`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (profileRes.ok) {
-                        setUserProfile(await profileRes.json());
+                        const data = await profileRes.json();
+                        console.log("Profile fetched:", data);
+                        setUserProfile(data);
+                    } else {
+                        console.error("Profile fetch failed:", profileRes.status, profileRes.statusText);
                     }
+                } else {
+                    console.log("No token found in localStorage");
                 }
             } catch (error) {
                 console.error("Failed to fetch dashboard data", error);
