@@ -14,58 +14,52 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
-    const [otp, setOtp] = useState("");
-    const [isOtpSent, setIsOtpSent] = useState(false);
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
-    const handleSendOtp = async (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
+        setSuccessMessage("");
 
-        try {
-            const { error } = await supabase.auth.signInWithOtp({
-                email,
-            });
-
-            if (error) throw error;
-
-            setIsOtpSent(true);
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
             setIsLoading(false);
+            return;
         }
-    };
-
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError("");
 
         try {
-            const { data, error } = await supabase.auth.verifyOtp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
-                token: otp,
-                type: "email",
+                password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/dashboard`,
+                }
             });
 
             if (error) throw error;
 
             if (data.session) {
+                // User is signed in immediately (if email confirmation is off)
                 localStorage.setItem("token", data.session.access_token);
                 router.push("/dashboard");
+            } else if (data.user) {
+                // User was created but needs verification
+                setSuccessMessage("Account created! Please check your email to verify your account.");
+                setIsLoading(false); // Stop loading so they can see message
             }
         } catch (err: any) {
             setError(err.message);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -82,18 +76,25 @@ export default function RegisterPage() {
             </div>
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold">
-                        {isOtpSent ? "Check your email" : "Create an account"}
-                    </CardTitle>
+                    <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
                     <CardDescription>
-                        {isOtpSent
-                            ? `We've sent a 6-digit code to ${email}`
-                            : "Enter your email to join via magic code"}
+                        Enter your email below to create your account
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                    {!isOtpSent ? (
-                        <form onSubmit={handleSendOtp}>
+                    {successMessage ? (
+                        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                            {successMessage}
+                            <div className="mt-4">
+                                <Link href="/login">
+                                    <Button variant="outline" className="w-full">
+                                        Go to Login
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleRegister}>
                             <div className="grid gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="email">Email</Label>
@@ -107,44 +108,33 @@ export default function RegisterPage() {
                                         disabled={isLoading}
                                     />
                                 </div>
-                                {error && <div className="text-sm text-red-500">{error}</div>}
-                                <Button className="w-full" type="submit" disabled={isLoading}>
-                                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    <Mail className="mr-2 h-4 w-4" />
-                                    Send Code
-                                </Button>
-                            </div>
-                        </form>
-                    ) : (
-                        <form onSubmit={handleVerifyOtp}>
-                            <div className="grid gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="otp">One-Time Password</Label>
+                                    <Label htmlFor="password">Password</Label>
                                     <Input
-                                        id="otp"
-                                        type="text"
-                                        placeholder="123456"
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
+                                        id="password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         required
                                         disabled={isLoading}
-                                        maxLength={6}
-                                        className="text-center text-lg tracking-widest"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                    <Input
+                                        id="confirmPassword"
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        disabled={isLoading}
                                     />
                                 </div>
                                 {error && <div className="text-sm text-red-500">{error}</div>}
                                 <Button className="w-full" type="submit" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Verify & Create Account
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="link"
-                                    className="px-0 font-normal"
-                                    onClick={() => setIsOtpSent(false)}
-                                    disabled={isLoading}
-                                >
-                                    Change email address
+                                    {!isLoading && <UserPlus className="mr-2 h-4 w-4" />}
+                                    Create Account
                                 </Button>
                             </div>
                         </form>
