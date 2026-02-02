@@ -22,14 +22,35 @@ export default function SubscriptionPage() {
 
     useEffect(() => {
         const fetchPrices = async () => {
+            // Check cache
+            const cached = localStorage.getItem("subscription_prices");
+            if (cached) {
+                try {
+                    const { data, timestamp } = JSON.parse(cached);
+                    // Cache valid for 1 hour
+                    if (Date.now() - timestamp < 3600000) {
+                        setPrices(data);
+                        setIsPricesLoading(false);
+                        return;
+                    }
+                } catch (e) {
+                    localStorage.removeItem("subscription_prices");
+                }
+            }
+
             try {
                 const res = await fetch(`${API_BASE_URL}/admin/public-config`);
                 if (res.ok) {
                     const data = await res.json();
-                    setPrices({
+                    const newPrices = {
                         semester: data.semester_price || 499,
                         yearly: data.yearly_price || 999
-                    });
+                    };
+                    setPrices(newPrices);
+                    localStorage.setItem("subscription_prices", JSON.stringify({
+                        data: newPrices,
+                        timestamp: Date.now()
+                    }));
                 } else {
                     // Fallback defaults if fetch fails but no error thrown
                     setPrices({ semester: 499, yearly: 999 });

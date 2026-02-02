@@ -98,9 +98,26 @@ export default function NotesPage() {
 
     const fetchNotes = async (semester?: number | "ALL", sortMethod: "newest" | "rating" = sortBy) => {
         setIsLoading(true);
+        const semToFetch = semester !== undefined ? semester : selectedSemester;
+        const cacheKey = `notes_cache_${semToFetch}_${sortMethod}`;
+
+        // [CACHE] Try load
+        const cached = sessionStorage.getItem(cacheKey);
+        let cacheHit = false;
+        if (cached) {
+            try {
+                const { data, timestamp } = JSON.parse(cached);
+                // Valid for 5 mins
+                if (Date.now() - timestamp < 300000) {
+                    setNotes(data);
+                    setIsLoading(false);
+                    cacheHit = true;
+                }
+            } catch (e) { sessionStorage.removeItem(cacheKey); }
+        }
+
         try {
             let url = `${API_BASE_URL}/notes/?category=NOTE&sort_by=${sortMethod}`;
-            const semToFetch = semester !== undefined ? semester : selectedSemester;
             if (semToFetch !== "ALL") {
                 url += `&semester=${semToFetch}`;
             }
@@ -115,6 +132,10 @@ export default function NotesPage() {
             if (res.ok) {
                 const data = await res.json();
                 setNotes(data);
+                // [CACHE] Save
+                sessionStorage.setItem(cacheKey, JSON.stringify({
+                    data, timestamp: Date.now()
+                }));
             }
         } catch (error) {
             console.error("Failed to fetch notes", error);

@@ -7,18 +7,42 @@ from ..models.models import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
+import time
+
+# Simple in-memory cache: token -> (email, timestamp)
+TOKEN_CACHE = {}
+CACHE_TTL = 60  # seconds
+
 async def get_current_user_optional(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)), db: AsyncSession = Depends(get_db)):
     if not token:
         return None
     
-    from ..core.supabase_client import supabase
-    try:
-        user_response = supabase.auth.get_user(token)
-        if not user_response or not user_response.user:
+    current_time = time.time()
+    
+    # Check cache
+    if token in TOKEN_CACHE:
+        email, timestamp = TOKEN_CACHE[token]
+        if current_time - timestamp < CACHE_TTL:
+            # Cache hit
+            pass
+        else:
+             # Expired
+             del TOKEN_CACHE[token]
+             email = None
+    else:
+        email = None
+
+    if not email:
+        from ..core.supabase_client import supabase
+        try:
+            user_response = supabase.auth.get_user(token)
+            if not user_response or not user_response.user:
+                return None
+            email = user_response.user.email
+            # Update cache
+            TOKEN_CACHE[token] = (email, current_time)
+        except Exception:
             return None
-        email = user_response.user.email
-    except Exception:
-        return None
         
     result = await db.execute(select(User).filter(User.email == email))
     user = result.scalars().first()
@@ -31,23 +55,32 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # Verify Supabase Token
-    from ..core.supabase_client import supabase
-    try:
-        # print(f"DEBUG: Verifying token: {token[:10]}...") 
-        user_response = supabase.auth.get_user(token)
-        # print(f"DEBUG: Supabase response: {user_response}")
-        if not user_response or not user_response.user:
-            print("DEBUG: No user in Supabase response")
+    current_time = time.time()
+    email = None
+
+    # Check cache
+    if token in TOKEN_CACHE:
+        cached_email, timestamp = TOKEN_CACHE[token]
+        if current_time - timestamp < CACHE_TTL:
+            email = cached_email
+    
+    if not email:
+        # Verify Supabase Token
+        from ..core.supabase_client import supabase
+        try:
+            # print(f"DEBUG: Verifying token: {token[:10]}...") 
+            user_response = supabase.auth.get_user(token)
+            # print(f"DEBUG: Supabase response: {user_response}")
+            if not user_response or not user_response.user:
+                print("DEBUG: No user in Supabase response")
+                raise credentials_exception
+            email = user_response.user.email
+            # Update cache
+            TOKEN_CACHE[token] = (email, current_time)
+            # print(f"DEBUG: Backend verified email: {email}")
+        except Exception as e:
+            print(f"DEBUG: Supabase verification failed: {e}")
             raise credentials_exception
-        email = user_response.user.email
-        # print(f"DEBUG: Backend verified email: {email}")
-    except Exception as e:
-        print(f"DEBUG: Supabase verification failed: {e}")
-        # Fallback to old JWT logic if Supabase verify fails (for backward compat if needed, or just fail)
-        # But since we switched frontend, we should primarily trust Supabase.
-        # If headers are missing, Supabase client might raise or return error.
-        raise credentials_exception
 
     # Check against local DB
     result = await db.execute(select(User).filter(User.email == email))
