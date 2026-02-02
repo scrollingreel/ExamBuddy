@@ -2,22 +2,22 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from jose import JWTError, jwt
 from ..core.database import get_db
 from ..models.models import User, UserRole
-from ..core.security import SECRET_KEY, ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 async def get_current_user_optional(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)), db: AsyncSession = Depends(get_db)):
     if not token:
         return None
+    
+    from ..core.supabase_client import supabase
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        user_response = supabase.auth.get_user(token)
+        if not user_response or not user_response.user:
             return None
-    except JWTError:
+        email = user_response.user.email
+    except Exception:
         return None
         
     result = await db.execute(select(User).filter(User.email == email))
