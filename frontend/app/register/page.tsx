@@ -51,6 +51,7 @@ export default function RegisterPage() {
 
             if (data.session) {
                 // User is signed in immediately (if email confirmation is off)
+                localStorage.removeItem("user_profile_cache");
                 localStorage.setItem("token", data.session.access_token);
                 router.push("/dashboard");
             } else if (data.user) {

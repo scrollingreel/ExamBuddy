@@ -6,7 +6,7 @@ import { BookOpen, CreditCard, FileText, GraduationCap, LayoutDashboard, LogOut,
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
@@ -26,7 +26,7 @@ interface SidebarContentProps {
 
 export function SidebarContent({ className, onLinkClick }: SidebarContentProps) {
     const pathname = usePathname();
-    const { user, isGuest, loading } = useProfile();
+    const { user, isGuest, loading, logout } = useProfile();
 
     // Filter items based on guest/auth status
     let displayItems = [...sidebarItems];
@@ -124,7 +124,7 @@ export function SidebarContent({ className, onLinkClick }: SidebarContentProps) 
                         href="/login"
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-all hover:text-red-500"
                         onClick={() => {
-                            localStorage.removeItem("token");
+                            logout();
                             if (onLinkClick) onLinkClick();
                         }}
                     >
@@ -157,6 +157,12 @@ export function MobileSidebar() {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72">
+                <SheetHeader className="sr-only">
+                    <SheetTitle>Navigation Menu</SheetTitle>
+                    <SheetDescription>
+                        Explore the dashboard options and settings.
+                    </SheetDescription>
+                </SheetHeader>
                 <SidebarContent onLinkClick={() => setOpen(false)} />
             </SheetContent>
         </Sheet>

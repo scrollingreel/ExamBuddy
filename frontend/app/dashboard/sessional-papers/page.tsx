@@ -3,6 +3,7 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import { useState, useEffect } from "react";
+import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,35 +61,21 @@ export default function SessionalPapersPage() {
     const [file, setFile] = useState<File | null>(null);
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
 
+    const { user, loading: profileLoading } = useProfile();
+    const [initDone, setInitDone] = useState(false);
+
     // Fetch User Profile first
     useEffect(() => {
-        const init = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) {
+        if (!profileLoading && !initDone) {
+            if (user?.semester) {
+                setSelectedSemester(user.semester);
+                fetchNotes(user.semester);
+            } else {
                 fetchNotes();
-                return;
             }
-
-            try {
-                // Fetch Profile
-                const profileRes = await fetch(`${API_BASE_URL}/auth/me`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (profileRes.ok) {
-                    const profile = await profileRes.json();
-                    if (profile.semester) {
-                        setSelectedSemester(profile.semester);
-                        fetchNotes(profile.semester);
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.error("Profile fetch error", e);
-            }
-            fetchNotes(); // Fallback load all
-        };
-        init();
-    }, []);
+            setInitDone(true);
+        }
+    }, [profileLoading, user, initDone]);
 
     const fetchNotes = async (semester?: number | "ALL") => {
         setIsLoading(true);

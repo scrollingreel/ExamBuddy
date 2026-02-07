@@ -7,6 +7,7 @@ import { Book, Clock, Star, TrendingUp } from "lucide-react";
 
 import { Megaphone } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useProfile } from "@/hooks/use-profile";
 
 interface Circular {
     id: string;
@@ -17,14 +18,14 @@ interface Circular {
 }
 
 export default function DashboardPage() {
+    const { user: userProfile } = useProfile();
     const [circulars, setCirculars] = useState<Circular[]>([]);
     const [recentNotes, setRecentNotes] = useState<any[]>([]);
-    const [userProfile, setUserProfile] = useState<any>(null);
+    // Removed local userProfile state
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const token = localStorage.getItem("token");
                 // Fetch Circulars
                 const circularRes = await fetch(`${API_BASE_URL}/circulars/`);
                 if (circularRes.ok) {
@@ -35,23 +36,6 @@ export default function DashboardPage() {
                 const notesRes = await fetch(`${API_BASE_URL}/notes/?limit=5`);
                 if (notesRes.ok) {
                     setRecentNotes(await notesRes.json());
-                }
-
-                // Fetch Profile
-                if (token) {
-                    console.log("Fetching profile with token:", token.substring(0, 10) + "...");
-                    const profileRes = await fetch(`${API_BASE_URL}/auth/me`, {
-                        headers: { "Authorization": `Bearer ${token}` }
-                    });
-                    if (profileRes.ok) {
-                        const data = await profileRes.json();
-                        console.log("Profile fetched:", data);
-                        setUserProfile(data);
-                    } else {
-                        console.error("Profile fetch failed:", profileRes.status, profileRes.statusText);
-                    }
-                } else {
-                    console.log("No token found in localStorage");
                 }
             } catch (error) {
                 console.error("Failed to fetch dashboard data", error);

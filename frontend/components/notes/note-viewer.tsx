@@ -3,6 +3,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -30,6 +31,8 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
             <DialogContent className="w-[95vw] sm:max-w-4xl h-[80dvh] md:h-[85vh] flex flex-col p-4">
                 <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
                     <DialogTitle className="line-clamp-1 pr-8 text-base">{title}</DialogTitle>
+                    <DialogDescription className="sr-only">Viewing note {title}</DialogDescription>
+
                     <div className="flex gap-2">
                         {/* Open Original button removed per user request */}
                     </div>

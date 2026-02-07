@@ -39,6 +39,7 @@ export default function LoginPage() {
 
             if (data.session) {
                 // Store Supabase token
+                localStorage.removeItem("user_profile_cache");
                 localStorage.setItem("token", data.session.access_token);
                 router.push("/dashboard");
             }
