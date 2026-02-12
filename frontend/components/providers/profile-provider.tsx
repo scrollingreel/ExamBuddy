@@ -103,27 +103,50 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        // Handle OAuth redirect or session restoration
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
+        const initializeAuth = async () => {
+            // 1. Check for existing session (handles OAuth redirect too)
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
                 const currentToken = localStorage.getItem("token");
                 if (currentToken !== session.access_token) {
                     localStorage.setItem("token", session.access_token);
                     // Clear old cache if user changed
                     localStorage.removeItem("user_profile_cache");
+                    await fetchProfile();
+                    // If we are on login page, redirect to dashboard
+                    if (window.location.pathname === '/login' || window.location.pathname === '/') {
+                        router.push('/dashboard');
+                    }
+                } else {
+                    // Token matches, just fetch profile if needed
                     fetchProfile();
                 }
-            } else if (event === 'SIGNED_OUT') {
-                logout();
+            } else {
+                fetchProfile(); // Will set user to null
             }
-        });
 
-        // Initial fetch
-        fetchProfile();
+            // 2. Set up listener for future changes
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    const currentToken = localStorage.getItem("token");
+                    if (currentToken !== session.access_token) {
+                        localStorage.setItem("token", session.access_token);
+                        localStorage.removeItem("user_profile_cache");
+                        fetchProfile();
+                        router.push('/dashboard');
+                    }
+                } else if (event === 'SIGNED_OUT') {
+                    logout();
+                }
+            });
 
-        return () => {
-            subscription.unsubscribe();
+            return () => {
+                subscription.unsubscribe();
+            };
         };
+
+        initializeAuth();
     }, []);
 
     return (
