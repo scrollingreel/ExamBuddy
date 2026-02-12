@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { API_BASE_URL } from "@/lib/config";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export interface UserProfile {
     email: string;
@@ -102,7 +103,27 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
+        // Handle OAuth redirect or session restoration
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                const currentToken = localStorage.getItem("token");
+                if (currentToken !== session.access_token) {
+                    localStorage.setItem("token", session.access_token);
+                    // Clear old cache if user changed
+                    localStorage.removeItem("user_profile_cache");
+                    fetchProfile();
+                }
+            } else if (event === 'SIGNED_OUT') {
+                logout();
+            }
+        });
+
+        // Initial fetch
         fetchProfile();
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
     return (
