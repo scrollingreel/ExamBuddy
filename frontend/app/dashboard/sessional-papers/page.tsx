@@ -27,6 +27,8 @@ import {
 import { Book, Download, FileText, Loader2, Plus, Search, Eye } from "lucide-react";
 import { NoteViewer } from "@/components/notes/note-viewer";
 
+const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "CE", "AE", "CHE", "BT"];
+
 interface Note {
     id: string;
     title: string;
@@ -60,6 +62,7 @@ export default function SessionalPapersPage() {
     });
     const [file, setFile] = useState<File | null>(null);
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
+    const [selectedBranch, setSelectedBranch] = useState<string>("ALL");
 
     const { user, loading: profileLoading } = useProfile();
     const [initDone, setInitDone] = useState(false);
@@ -147,9 +150,22 @@ export default function SessionalPapersPage() {
     };
 
     const filteredNotes = notes.filter(
-        (note) =>
-            note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            note.subject.toLowerCase().includes(searchQuery.toLowerCase())
+        (note) => {
+            const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                note.subject.toLowerCase().includes(searchQuery.toLowerCase());
+
+            let matchesBranch = true;
+            if (selectedBranch !== "ALL") {
+                if (selectedBranch === "CSE") {
+                    const b = note.branch.toUpperCase();
+                    matchesBranch = b === "CSE" || b === "CSE ALLIED" || b === "CSEALLIED";
+                } else {
+                    matchesBranch = note.branch.toUpperCase() === selectedBranch;
+                }
+            }
+
+            return matchesSearch && matchesBranch;
+        }
     );
 
     return (
@@ -196,10 +212,9 @@ export default function SessionalPapersPage() {
                                                 value={formData.branch}
                                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                             >
-                                                <option value="CSE">CSE</option>
-                                                <option value="IT">IT</option>
-                                                <option value="ECE">ECE</option>
-                                                <option value="ME">ME</option>
+                                                {BRANCHES.map((b) => (
+                                                    <option key={b} value={b}>{b}</option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div className="grid gap-2">
@@ -257,6 +272,18 @@ export default function SessionalPapersPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                </div>
+                <div className="w-full md:w-[150px]">
+                    <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={selectedBranch}
+                        onChange={(e) => setSelectedBranch(e.target.value)}
+                    >
+                        <option value="ALL">All Branches</option>
+                        {BRANCHES.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                        ))}
+                    </select>
                 </div>
                 <div className="w-full md:w-[200px]">
                     <select
