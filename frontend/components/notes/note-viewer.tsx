@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -20,9 +21,12 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
     const isPdf = fileUrl.toLowerCase().includes(".pdf");
     const isLocal = fileUrl.includes("localhost") || fileUrl.includes("127.0.0.1");
 
+    const [useNativeViewer, setUseNativeViewer] = useState(false);
+
     // On mobile, native PDF viewing in iframe often fails (shows white).
     // accessible public URLs work best with Google Docs Viewer.
-    const pdfViewerUrl = isPdf && !isLocal
+    // However, Google Docs has size limits. We provide a toggle.
+    const pdfViewerUrl = isPdf && !isLocal && !useNativeViewer
         ? `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`
         : `${fileUrl}#toolbar=0`;
 
@@ -31,10 +35,18 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
             <DialogContent className="w-[95vw] sm:max-w-4xl h-[80dvh] md:h-[85vh] flex flex-col p-4">
                 <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
                     <DialogTitle className="line-clamp-1 pr-8 text-base">{title}</DialogTitle>
-                    <DialogDescription className="sr-only">Viewing note {title}</DialogDescription>
-
-                    <div className="flex gap-2">
-                        {/* Open Original button removed per user request */}
+                    <div className="flex items-center gap-2">
+                        {isPdf && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setUseNativeViewer(!useNativeViewer)}
+                                className="h-8 text-xs"
+                            >
+                                {useNativeViewer ? "Use Google Viewer" : "Switch Viewer (Fix Limit)"}
+                            </Button>
+                        )}
+                        <DialogDescription className="sr-only">Viewing note {title}</DialogDescription>
                     </div>
                 </DialogHeader>
                 <div className="flex-1 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden rounded-md relative group">
@@ -44,7 +56,7 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
                     )}
 
                     {/* Block Google Docs Viewer 'Pop-out' button for all PDFs to prevent easy download */}
-                    {isPdf && (
+                    {isPdf && !useNativeViewer && (
                         <div className="absolute top-0 right-0 h-14 w-14 z-20 bg-transparent" />
                     )}
 
