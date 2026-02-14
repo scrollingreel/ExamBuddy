@@ -164,11 +164,11 @@ export default function UniversityPapersPage() {
 
             let matchesBranch = true;
             if (selectedBranch !== "ALL") {
+                const noteBranches = note.branch.toUpperCase().split(',').map(b => b.trim());
                 if (selectedBranch === "CSE") {
-                    const b = note.branch.toUpperCase();
-                    matchesBranch = b === "CSE" || b === "CSE ALLIED" || b === "CSEALLIED";
+                    matchesBranch = noteBranches.some(b => b === "CSE" || b === "CSE ALLIED" || b === "CSEALLIED");
                 } else {
-                    matchesBranch = note.branch.toUpperCase() === selectedBranch;
+                    matchesBranch = noteBranches.includes(selectedBranch);
                 }
             }
 

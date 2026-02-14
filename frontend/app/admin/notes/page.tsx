@@ -26,6 +26,8 @@ import { Plus, Trash2, Edit, FileText, ExternalLink, Loader2, Search } from "luc
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/config";
 
+const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "CE", "AE", "CHE", "BT"];
+
 interface Note {
     id: string;
     title: string;
@@ -151,13 +153,23 @@ export default function AdminNotesPage() {
                 },
                 body: JSON.stringify({
                     title: formData.title,
-                    status: selectedNote.status, // Keep existing status or allow edit
+                    subject: formData.subject,
+                    branch: formData.branch,
+                    semester: parseInt(formData.semester),
+                    status: selectedNote.status,
                     is_premium: formData.is_premium
                 })
             });
             if (res.ok) {
                 setIsEditOpen(false);
-                setNotes(notes.map(n => n.id === selectedNote.id ? { ...n, title: formData.title, is_premium: formData.is_premium } : n));
+                setNotes(notes.map(n => n.id === selectedNote.id ? {
+                    ...n,
+                    title: formData.title,
+                    subject: formData.subject,
+                    branch: formData.branch,
+                    semester: parseInt(formData.semester),
+                    is_premium: formData.is_premium
+                } : n));
                 fetchNotes(); // ensure sync
             } else {
                 alert("Update failed");
@@ -165,6 +177,17 @@ export default function AdminNotesPage() {
         } catch (error) {
             alert("Error updating note");
         }
+    };
+
+    const toggleBranch = (branch: string) => {
+        const currentBranches = formData.branch.split(',').map(b => b.trim()).filter(Boolean);
+        let newBranches;
+        if (currentBranches.includes(branch)) {
+            newBranches = currentBranches.filter(b => b !== branch);
+        } else {
+            newBranches = [...currentBranches, branch];
+        }
+        setFormData({ ...formData, branch: newBranches.join(', ') });
     };
 
     const filteredNotes = notes.filter(n =>
@@ -215,7 +238,7 @@ export default function AdminNotesPage() {
                             </CardHeader>
                             <CardContent className="text-sm space-y-2">
                                 <div className="flex justify-between">
-                                    <span>Branch: {note.branch}</span>
+                                    <span className="truncate max-w-[150px]" title={note.branch}>Branch: {note.branch}</span>
                                     <span>Sem: {note.semester}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
@@ -331,7 +354,7 @@ export default function AdminNotesPage() {
 
             {/* Edit Dialog */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent>
+                <DialogContent className="max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Edit Note</DialogTitle>
                     </DialogHeader>
@@ -340,6 +363,41 @@ export default function AdminNotesPage() {
                             <Label htmlFor="edit-title">Title</Label>
                             <Input id="edit-title" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
                         </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="edit-semester">Semester</Label>
+                                <Input id="edit-semester" type="number" value={formData.semester} onChange={e => setFormData({ ...formData, semester: e.target.value })} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="edit-subject">Subject</Label>
+                                <Input id="edit-subject" value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} required />
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label className="mb-2 block">Branches</Label>
+                            <div className="grid grid-cols-3 gap-2 border rounded-md p-3">
+                                {BRANCHES.map(branch => (
+                                    <div key={branch} className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`branch-${branch}`}
+                                            checked={formData.branch.split(',').map(b => b.trim()).includes(branch)}
+                                            onChange={() => toggleBranch(branch)}
+                                            className="h-4 w-4 rounded border-gray-300"
+                                        />
+                                        <label htmlFor={`branch-${branch}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                            {branch}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Currently: {formData.branch}
+                            </p>
+                        </div>
+
                         <div className="flex items-center gap-2">
                             <input
                                 type="checkbox"
