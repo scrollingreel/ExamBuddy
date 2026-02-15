@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { downloadFile } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
 import { useProfile } from "@/hooks/use-profile";
@@ -357,10 +358,18 @@ export default function SessionalPapersPage() {
                                         <Eye className="mr-2 h-4 w-4" /> View Paper
                                     </Button>
                                 ) : (
-                                    <Button variant="secondary" className="w-full" size="sm" asChild>
-                                        <a href={note.file_url} target="_blank" rel="noopener noreferrer">
-                                            <Download className="mr-2 h-4 w-4" /> Download
-                                        </a>
+                                    <Button variant="secondary" className="w-full" size="sm" onClick={() => {
+                                        const token = localStorage.getItem("token");
+                                        if (token) {
+                                            fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
+                                                method: "POST",
+                                                headers: { Authorization: `Bearer ${token}` }
+                                            }).catch(console.error);
+                                        }
+                                        const ext = note.file_url.split('.').pop()?.split('?')[0] || 'pdf';
+                                        downloadFile(note.file_url, `${note.title}.${ext}`);
+                                    }}>
+                                        <Download className="mr-2 h-4 w-4" /> Download
                                     </Button>
                                 )}
                             </CardFooter>

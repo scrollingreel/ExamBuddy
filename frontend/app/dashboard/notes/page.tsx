@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { cn, downloadFile } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
 import { useProfile } from "@/hooks/use-profile";
@@ -418,8 +419,7 @@ export default function NotesPage() {
                                                 <Eye className="mr-2 h-4 w-4" /> View
                                             </Button>
 
-                                            <Button variant={note.is_premium ? "default" : "outline"} size="sm" asChild onClick={() => {
-                                                // Trigger download tracking
+                                            <Button variant={note.is_premium ? "default" : "outline"} size="sm" onClick={() => {
                                                 const token = localStorage.getItem("token");
                                                 if (token) {
                                                     fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
@@ -427,10 +427,11 @@ export default function NotesPage() {
                                                         headers: { Authorization: `Bearer ${token}` }
                                                     }).catch(console.error);
                                                 }
+                                                // Infer extension or default to name
+                                                const ext = note.file_url.split('.').pop()?.split('?')[0] || 'pdf';
+                                                downloadFile(note.file_url, `${note.title}.${ext}`);
                                             }}>
-                                                <a href={note.file_url} target="_blank" rel="noopener noreferrer">
-                                                    <Download className="mr-2 h-4 w-4" /> Download
-                                                </a>
+                                                <Download className="mr-2 h-4 w-4" /> Download
                                             </Button>
                                         </div>
                                     )}
