@@ -321,33 +321,38 @@ export default function SessionalPapersPage() {
                                             <Book className="mr-2 h-4 w-4" /> Unlock Premium
                                         </a>
                                     </Button>
-                                ) : note.is_premium ? (
-                                    <Button
-                                        variant="secondary"
-                                        className="w-full"
-                                        onClick={() => setViewingNote(note)}
-                                    >
-                                        <Eye className="mr-2 h-4 w-4" /> View Paper
-                                    </Button>
                                 ) : (
-                                    <Button variant="secondary" className="w-full" size="sm" onClick={() => {
-                                        const token = localStorage.getItem("token");
-                                        if (token) {
-                                            fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
-                                                method: "POST",
-                                                headers: { Authorization: `Bearer ${token}` }
-                                            })
-                                                .then(res => {
-                                                    if (res.ok) alert("Paper saved to Offline Library!");
-                                                    else alert("Failed to save paper.");
-                                                })
-                                                .catch(console.error);
-                                        } else {
-                                            alert("Please login to save.");
-                                        }
-                                    }}>
-                                        <Download className="mr-2 h-4 w-4" /> Save Offline
-                                    </Button>
+                                    <div className="flex gap-2 w-full">
+                                        <Button
+                                            variant="secondary"
+                                            className="flex-1"
+                                            onClick={() => setViewingNote(note)}
+                                        >
+                                            <Eye className="mr-2 h-4 w-4" /> View
+                                        </Button>
+                                        <Button
+                                            variant={note.is_premium ? "default" : "secondary"}
+                                            className="flex-1"
+                                            onClick={() => {
+                                                const token = localStorage.getItem("token");
+                                                if (token) {
+                                                    fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
+                                                        method: "POST",
+                                                        headers: { Authorization: `Bearer ${token}` }
+                                                    })
+                                                        .then(res => {
+                                                            if (res.ok) alert("Paper saved to Offline Library!");
+                                                            else alert("Failed to save paper.");
+                                                        })
+                                                        .catch(console.error);
+                                                } else {
+                                                    alert("Please login to save.");
+                                                }
+                                            }}
+                                        >
+                                            <Download className="mr-2 h-4 w-4" /> Save
+                                        </Button>
+                                    </div>
                                 )}
                             </CardFooter>
                         </Card>
