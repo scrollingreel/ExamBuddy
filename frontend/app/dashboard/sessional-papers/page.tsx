@@ -60,6 +60,7 @@ export default function SessionalPapersPage() {
     });
     const [file, setFile] = useState<File | null>(null);
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
+    const [selectedBranch, setSelectedBranch] = useState<string>("ALL");
 
     const { user, loading: profileLoading } = useProfile();
     const [initDone, setInitDone] = useState(false);
@@ -77,14 +78,21 @@ export default function SessionalPapersPage() {
         }
     }, [profileLoading, user, initDone]);
 
-    const fetchNotes = async (semester?: number | "ALL") => {
+    const fetchNotes = async (
+        semester: number | "ALL" = selectedSemester,
+        branch: string = selectedBranch
+    ) => {
         setIsLoading(true);
         try {
             let url = `${API_BASE_URL}/notes/?category=SESSIONAL_PAPER`;
             const semToFetch = semester !== undefined ? semester : selectedSemester;
+            const branchToFetch = branch !== undefined ? branch : selectedBranch;
 
             if (semToFetch !== "ALL") {
                 url += `&semester=${semToFetch}`;
+            }
+            if (branchToFetch !== "ALL") {
+                url += `&branch=${branchToFetch}`;
             }
 
             const token = localStorage.getItem("token");
@@ -261,11 +269,28 @@ export default function SessionalPapersPage() {
                 <div className="w-full md:w-[200px]">
                     <select
                         className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={selectedBranch}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedBranch(val);
+                            fetchNotes(selectedSemester, val);
+                        }}
+                    >
+                        <option value="ALL">All Branches</option>
+                        <option value="CSE">CSE</option>
+                        <option value="IT">IT</option>
+                        <option value="ECE">ECE</option>
+                        <option value="ME">ME</option>
+                    </select>
+                </div>
+                <div className="w-full md:w-[200px]">
+                    <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
                         value={selectedSemester}
                         onChange={(e) => {
                             const val = e.target.value === "ALL" ? "ALL" : parseInt(e.target.value);
                             setSelectedSemester(val);
-                            fetchNotes(val);
+                            fetchNotes(val, selectedBranch);
                         }}
                     >
                         <option value="ALL">All Semesters</option>

@@ -65,6 +65,7 @@ export default function NotesPage() {
     const [file, setFile] = useState<File | null>(null);
 
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
+    const [selectedBranch, setSelectedBranch] = useState<string>("ALL");
     const [sortBy, setSortBy] = useState<"newest" | "rating">("newest");
 
     const { user, loading: profileLoading } = useProfile();
@@ -79,14 +80,20 @@ export default function NotesPage() {
             } else {
                 fetchNotes();
             }
+            // If user has branch, we could set it here, but we'll stick to ALL by default for broader discovery unless requested.
             setInitDone(true);
         }
     }, [profileLoading, user, initDone]);
 
-    const fetchNotes = async (semester?: number | "ALL", sortMethod: "newest" | "rating" = sortBy) => {
+    const fetchNotes = async (
+        semester: number | "ALL" = selectedSemester,
+        sortMethod: "newest" | "rating" = sortBy,
+        branch: string = selectedBranch
+    ) => {
         setIsLoading(true);
         const semToFetch = semester !== undefined ? semester : selectedSemester;
-        const cacheKey = `notes_cache_${semToFetch}_${sortMethod}`;
+        const branchToFetch = branch !== undefined ? branch : selectedBranch;
+        const cacheKey = `notes_cache_${semToFetch}_${sortMethod}_${branchToFetch}`;
 
         // [CACHE] Try load
         const cached = sessionStorage.getItem(cacheKey);
@@ -107,6 +114,9 @@ export default function NotesPage() {
             let url = `${API_BASE_URL}/notes/?category=NOTE&sort_by=${sortMethod}`;
             if (semToFetch !== "ALL") {
                 url += `&semester=${semToFetch}`;
+            }
+            if (branchToFetch !== "ALL") {
+                url += `&branch=${branchToFetch}`;
             }
 
             const token = localStorage.getItem("token");
@@ -303,11 +313,29 @@ export default function NotesPage() {
                 <div className="w-full md:w-[200px]">
                     <select
                         className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={selectedBranch}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedBranch(val);
+                            fetchNotes(selectedSemester, undefined, val);
+                        }}
+                    >
+                        <option value="ALL">All Branches</option>
+                        <option value="CSE">CSE</option>
+                        <option value="IT">IT</option>
+                        <option value="ECE">ECE</option>
+                        <option value="ME">ME</option>
+                    </select>
+                </div>
+
+                <div className="w-full md:w-[200px]">
+                    <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
                         value={selectedSemester}
                         onChange={(e) => {
                             const val = e.target.value === "ALL" ? "ALL" : parseInt(e.target.value);
                             setSelectedSemester(val);
-                            fetchNotes(val);
+                            fetchNotes(val, undefined, selectedBranch);
                         }}
                     >
                         <option value="ALL">All Semesters</option>

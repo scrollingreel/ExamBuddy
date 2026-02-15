@@ -62,6 +62,7 @@ export default function UniversityPapersPage() {
     });
     const [file, setFile] = useState<File | null>(null);
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
+    const [selectedBranch, setSelectedBranch] = useState<string>("ALL");
     const [selectedYear, setSelectedYear] = useState<string | "ALL">("ALL");
 
     const { user, loading: profileLoading } = useProfile();
@@ -80,18 +81,26 @@ export default function UniversityPapersPage() {
         }
     }, [profileLoading, user, initDone]);
 
-    const fetchNotes = async (semester?: number | "ALL", year?: string | "ALL") => {
+    const fetchNotes = async (
+        semester: number | "ALL" = selectedSemester,
+        year: string | "ALL" = selectedYear,
+        branch: string = selectedBranch
+    ) => {
         setIsLoading(true);
         try {
             let url = `${API_BASE_URL}/notes/?category=UNIVERSITY_PAPER`;
             const semToFetch = semester !== undefined ? semester : selectedSemester;
             const yearToFetch = year !== undefined ? year : selectedYear;
+            const branchToFetch = branch !== undefined ? branch : selectedBranch;
 
             if (semToFetch !== "ALL") {
                 url += `&semester=${semToFetch}`;
             }
             if (yearToFetch !== "ALL") {
                 url += `&year=${yearToFetch}`;
+            }
+            if (branchToFetch !== "ALL") {
+                url += `&branch=${branchToFetch}`;
             }
 
             const token = localStorage.getItem("token");
@@ -282,6 +291,23 @@ export default function UniversityPapersPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                </div>
+                <div className="w-full md:w-[150px]">
+                    <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={selectedBranch}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedBranch(val);
+                            fetchNotes(undefined, undefined, val);
+                        }}
+                    >
+                        <option value="ALL">All Branches</option>
+                        <option value="CSE">CSE</option>
+                        <option value="IT">IT</option>
+                        <option value="ECE">ECE</option>
+                        <option value="ME">ME</option>
+                    </select>
                 </div>
                 <div className="w-full md:w-[150px]">
                     <select
