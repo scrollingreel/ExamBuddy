@@ -5,8 +5,9 @@ import { API_BASE_URL } from "@/lib/config";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Download, ThumbsUp, ThumbsDown, Star } from "lucide-react";
+import { Loader2, Download, ThumbsUp, ThumbsDown, Star, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NoteViewer } from "@/components/notes/note-viewer";
 
 interface Note {
     id: string;
@@ -21,6 +22,7 @@ export default function ProfilePage() {
     const [uploads, setUploads] = useState<Note[]>([]);
     const [downloads, setDownloads] = useState<Note[]>([]);
     const [loading, setLoading] = useState(true);
+    const [viewingNote, setViewingNote] = useState<Note | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -98,27 +100,35 @@ export default function ProfilePage() {
                 <TabsContent value="downloads">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Download History</CardTitle>
-                            <CardDescription>Notes you have accessed recently.</CardDescription>
+                            <CardTitle>Offline Library</CardTitle>
+                            <CardDescription>Notes you have saved for quick access.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
                                 {downloads.map(note => (
                                     <div key={note.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                                         <div className="font-medium">{note.title}</div>
-                                        <Button variant="outline" size="sm" asChild>
-                                            <a href={note.file_url} target="_blank" rel="noopener noreferrer">
-                                                <Download className="mr-2 h-4 w-4" /> Download Again
-                                            </a>
+                                        <Button variant="outline" size="sm" onClick={() => setViewingNote(note)}>
+                                            <Eye className="mr-2 h-4 w-4" /> View Note
                                         </Button>
                                     </div>
                                 ))}
-                                {downloads.length === 0 && <p className="text-muted-foreground text-center py-8">No downloads yet.</p>}
+                                {downloads.length === 0 && <p className="text-muted-foreground text-center py-8">No saved notes yet.</p>}
                             </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {viewingNote && (
+                <NoteViewer
+                    isOpen={!!viewingNote}
+                    onClose={() => setViewingNote(null)}
+                    title={viewingNote.title}
+                    fileUrl={viewingNote.file_url}
+                    isPremium={false}
+                />
+            )}
         </div>
     );
 }

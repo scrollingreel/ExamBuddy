@@ -1,7 +1,6 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-import { cn, downloadFile } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
 import { useProfile } from "@/hooks/use-profile";
@@ -29,9 +28,6 @@ import { Book, Download, FileText, Loader2, Plus, Search, ArrowUpDown, Eye } fro
 import { VoteControl } from "@/components/notes/vote-control";
 import { ReviewSection } from "@/components/notes/review-section";
 import { NoteViewer } from "@/components/notes/note-viewer"; // [NEW]
-
-// Define branches here or import from constants
-const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "CE", "AE", "CHE", "BT"];
 
 interface Note {
     id: string;
@@ -69,7 +65,6 @@ export default function NotesPage() {
     const [file, setFile] = useState<File | null>(null);
 
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
-    const [selectedBranch, setSelectedBranch] = useState<string>("ALL");
     const [sortBy, setSortBy] = useState<"newest" | "rating">("newest");
 
     const { user, loading: profileLoading } = useProfile();
@@ -177,23 +172,9 @@ export default function NotesPage() {
     };
 
     const filteredNotes = notes.filter(
-        (note) => {
-            const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                note.subject.toLowerCase().includes(searchQuery.toLowerCase());
-
-            let matchesBranch = true;
-            if (selectedBranch !== "ALL") {
-                const noteBranches = note.branch.toUpperCase().split(',').map(b => b.trim());
-                if (selectedBranch === "CSE") {
-                    // Normalize comparison for CSE/Cse allied
-                    matchesBranch = noteBranches.some(b => b === "CSE" || b === "CSE ALLIED" || b === "CSEALLIED");
-                } else {
-                    matchesBranch = noteBranches.includes(selectedBranch);
-                }
-            }
-
-            return matchesSearch && matchesBranch;
-        }
+        (note) =>
+            note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            note.subject.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -240,9 +221,10 @@ export default function NotesPage() {
                                                 value={formData.branch}
                                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                             >
-                                                {BRANCHES.map((b) => (
-                                                    <option key={b} value={b}>{b}</option>
-                                                ))}
+                                                <option value="CSE">CSE</option>
+                                                <option value="IT">IT</option>
+                                                <option value="ECE">ECE</option>
+                                                <option value="ME">ME</option>
                                             </select>
                                         </div>
                                         <div className="grid gap-2">
@@ -300,19 +282,6 @@ export default function NotesPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div>
-
-                <div className="w-full md:w-[150px]">
-                    <select
-                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                    >
-                        <option value="ALL">All Branches</option>
-                        {BRANCHES.map((b) => (
-                            <option key={b} value={b}>{b}</option>
-                        ))}
-                    </select>
                 </div>
 
                 <div className="w-full md:w-[180px] relative">
@@ -425,13 +394,17 @@ export default function NotesPage() {
                                                     fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
                                                         method: "POST",
                                                         headers: { Authorization: `Bearer ${token}` }
-                                                    }).catch(console.error);
+                                                    })
+                                                        .then(res => {
+                                                            if (res.ok) alert("Note saved to Offline Library!");
+                                                            else alert("Failed to save note.");
+                                                        })
+                                                        .catch(console.error);
+                                                } else {
+                                                    alert("Please login to save notes.");
                                                 }
-                                                // Infer extension or default to name
-                                                const ext = note.file_url.split('.').pop()?.split('?')[0] || 'pdf';
-                                                downloadFile(note.file_url, `${note.title}.${ext}`);
                                             }}>
-                                                <Download className="mr-2 h-4 w-4" /> Download
+                                                <Download className="mr-2 h-4 w-4" /> Save Offline
                                             </Button>
                                         </div>
                                     )}
@@ -455,4 +428,3 @@ export default function NotesPage() {
         </div>
     );
 }
-

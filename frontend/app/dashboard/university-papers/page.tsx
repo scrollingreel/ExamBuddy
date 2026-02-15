@@ -1,7 +1,6 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-import { downloadFile } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
 import { useProfile } from "@/hooks/use-profile";
@@ -27,8 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { Book, Download, FileText, Loader2, Plus, Search, Eye } from "lucide-react";
 import { NoteViewer } from "@/components/notes/note-viewer";
-
-const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "CE", "AE", "CHE", "BT"];
 
 interface Note {
     id: string;
@@ -66,7 +63,6 @@ export default function UniversityPapersPage() {
     const [file, setFile] = useState<File | null>(null);
     const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
     const [selectedYear, setSelectedYear] = useState<string | "ALL">("ALL");
-    const [selectedBranch, setSelectedBranch] = useState<string>("ALL");
 
     const { user, loading: profileLoading } = useProfile();
     const [initDone, setInitDone] = useState(false);
@@ -127,6 +123,10 @@ export default function UniversityPapersPage() {
         data.append("semester", formData.semester.toString());
         data.append("subject", formData.subject);
         data.append("category", "UNIVERSITY_PAPER"); // Hardcoded category
+        // Default year to current year if not specified, though UI doesn't have year input yet.
+        // Ideally we should add year input to this dialog too, but for now let's assume current year or update dialog.
+        // Wait, the user asked for filtering, but likely wants to upload with year too.
+        // Let's add year input to the upload dialog in this page as well.
         if (formData.year) data.append("year", formData.year);
         data.append("file", file);
 
@@ -159,22 +159,9 @@ export default function UniversityPapersPage() {
     };
 
     const filteredNotes = notes.filter(
-        (note) => {
-            const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                note.subject.toLowerCase().includes(searchQuery.toLowerCase());
-
-            let matchesBranch = true;
-            if (selectedBranch !== "ALL") {
-                const noteBranches = note.branch.toUpperCase().split(',').map(b => b.trim());
-                if (selectedBranch === "CSE") {
-                    matchesBranch = noteBranches.some(b => b === "CSE" || b === "CSE ALLIED" || b === "CSEALLIED");
-                } else {
-                    matchesBranch = noteBranches.includes(selectedBranch);
-                }
-            }
-
-            return matchesSearch && matchesBranch;
-        }
+        (note) =>
+            note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            note.subject.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -221,9 +208,10 @@ export default function UniversityPapersPage() {
                                                 value={formData.branch}
                                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                             >
-                                                {BRANCHES.map((b) => (
-                                                    <option key={b} value={b}>{b}</option>
-                                                ))}
+                                                <option value="CSE">CSE</option>
+                                                <option value="IT">IT</option>
+                                                <option value="ECE">ECE</option>
+                                                <option value="ME">ME</option>
                                             </select>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -294,18 +282,6 @@ export default function UniversityPapersPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div>
-                <div className="w-full md:w-[150px]">
-                    <select
-                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                    >
-                        <option value="ALL">All Branches</option>
-                        {BRANCHES.map((b) => (
-                            <option key={b} value={b}>{b}</option>
-                        ))}
-                    </select>
                 </div>
                 <div className="w-full md:w-[150px]">
                     <select
@@ -401,12 +377,17 @@ export default function UniversityPapersPage() {
                                             fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
                                                 method: "POST",
                                                 headers: { Authorization: `Bearer ${token}` }
-                                            }).catch(console.error);
+                                            })
+                                                .then(res => {
+                                                    if (res.ok) alert("Paper saved to Offline Library!");
+                                                    else alert("Failed to save paper.");
+                                                })
+                                                .catch(console.error);
+                                        } else {
+                                            alert("Please login to save.");
                                         }
-                                        const ext = note.file_url.split('.').pop()?.split('?')[0] || 'pdf';
-                                        downloadFile(note.file_url, `${note.title}.${ext}`);
                                     }}>
-                                        <Download className="mr-2 h-4 w-4" /> Download
+                                        <Download className="mr-2 h-4 w-4" /> Save Offline
                                     </Button>
                                 )}
                             </CardFooter>
