@@ -1,5 +1,4 @@
 from fastapi import Depends, HTTPException, status
-from datetime import datetime
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -73,14 +72,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
             user_response = supabase.auth.get_user(token)
             # print(f"DEBUG: Supabase response: {user_response}")
             if not user_response or not user_response.user:
-                print("DEBUG: No user in Supabase response")
+                # print("DEBUG: No user in Supabase response")
                 raise credentials_exception
             email = user_response.user.email
             # Update cache
             TOKEN_CACHE[token] = (email, current_time)
             # print(f"DEBUG: Backend verified email: {email}")
         except Exception as e:
-            print(f"DEBUG: Supabase verification failed: {e}")
+            # print(f"DEBUG: Supabase verification failed: {e}")
             raise credentials_exception
 
     # Check against local DB
@@ -98,10 +97,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         db.add(user)
         await db.commit()
         await db.refresh(user)
-    else:
-        # Update last active time
-        user.last_active_at = datetime.utcnow()
-        await db.commit()
         
     return user
 
