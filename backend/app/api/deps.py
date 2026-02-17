@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, status
+from datetime import datetime
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -97,6 +98,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         db.add(user)
         await db.commit()
         await db.refresh(user)
+    else:
+        # Update last active time
+        user.last_active_at = datetime.utcnow()
+        await db.commit()
         
     return user
 

@@ -525,16 +525,7 @@ async def update_note(
         note.status = note_update.status
     if note_update.is_premium is not None:
         note.is_premium = note_update.is_premium
-    if note_update.branch is not None:
-        note.branch = note_update.branch
-    if note_update.semester is not None:
-        note.semester = note_update.semester
-    if note_update.subject is not None:
-        note.subject = note_update.subject
-    if note_update.year is not None:
-        note.year = note_update.year
-    if note_update.category is not None:
-        note.category = note_update.category
+    # Add other fields as needed from NoteUpdate schema
         
     await db.commit()
     await db.refresh(note)

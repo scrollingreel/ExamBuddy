@@ -3,9 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from ..core.database import get_db
 from ..models.models import SystemSetting, User, UserRole
+from ..schemas.user import UserResponse
 from .deps import get_current_admin
 from pydantic import BaseModel
-from typing import List
+from sqlalchemy import func
+from datetime import datetime, timedelta
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -72,3 +75,46 @@ async def get_public_config(db: AsyncSession = Depends(get_db)):
             pass
             
     return config
+
+
+@router.get("/users", response_model=List[UserResponse])
+async def get_users(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    result = await db.execute(
+        select(User).order_by(User.created_at.desc())
+    )
+    return result.scalars().all()
+
+@router.patch("/users/{user_id}/premium")
+async def toggle_premium(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_premium = not user.is_premium
+    await db.commit()
+    return {"status": "success", "is_premium": user.is_premium}
+
+@router.get("/stats/live")
+async def get_live_users_count(
+    minutes: int = 5,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Get count of users active in the last `minutes` (default 5).
+    """
+    threshold = datetime.utcnow() - timedelta(minutes=minutes)
+    result = await db.execute(
+        select(func.count()).select_from(User).filter(User.last_active_at >= threshold)
+    )
+    count = result.scalar() or 0
+    return {"live_users": count}

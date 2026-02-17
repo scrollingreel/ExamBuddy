@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { API_BASE_URL } from "@/lib/config";
-import { Loader2, Save } from "lucide-react";
+
+import { Loader2, Save, Users } from "lucide-react";
 
 interface Setting {
     key: string;
@@ -22,10 +23,27 @@ export default function AdminSettingsPage() {
     });
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [liveUsers, setLiveUsers] = useState<number | null>(null);
 
     useEffect(() => {
         fetchSettings();
+        fetchLiveUsers();
     }, []);
+
+    const fetchLiveUsers = async () => {
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/stats/live`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setLiveUsers(data.live_users);
+            }
+        } catch (error) {
+            console.error("Failed to load live users", error);
+        }
+    };
 
     const fetchSettings = async () => {
         setLoading(true);
@@ -100,9 +118,20 @@ export default function AdminSettingsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Subscription Pricing</CardTitle>
+
                     <CardDescription>Set the prices for Semester and Yearly plans.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {/* Live Users Widget inside or outside? Maybe outside is better, but inside is fine for now as requested "in the admin setting" */}
+                    <div className="flex items-center space-x-4 rounded-md border p-4">
+                        <Users className="h-6 w-6 text-blue-500" />
+                        <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium leading-none">Live Users (Active in last 5 min)</p>
+                            <p className="text-sm text-muted-foreground">
+                                {liveUsers !== null ? `${liveUsers} user(s) online` : "Loading..."}
+                            </p>
+                        </div>
+                    </div>
                     {loading ? (
                         <div className="flex justify-center p-4">
                             <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
