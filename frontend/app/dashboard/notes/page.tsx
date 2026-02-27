@@ -232,9 +232,12 @@ export default function NotesPage() {
                                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                             >
                                                 <option value="CSE">CSE</option>
+                                                <option value="CSE and Allied">CSE and Allied</option>
                                                 <option value="IT">IT</option>
                                                 <option value="ECE">ECE</option>
                                                 <option value="ME">ME</option>
+                                                <option value="CE">CE</option>
+                                                <option value="EN">EN</option>
                                             </select>
                                         </div>
                                         <div className="grid gap-2">
@@ -322,9 +325,12 @@ export default function NotesPage() {
                     >
                         <option value="ALL">All Branches</option>
                         <option value="CSE">CSE</option>
+                        <option value="CSE and Allied">CSE and Allied</option>
                         <option value="IT">IT</option>
                         <option value="ECE">ECE</option>
                         <option value="ME">ME</option>
+                        <option value="CE">CE</option>
+                        <option value="EN">EN</option>
                     </select>
                 </div>
 
