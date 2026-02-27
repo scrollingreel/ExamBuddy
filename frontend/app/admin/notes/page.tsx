@@ -48,6 +48,7 @@ export default function AdminNotesPage() {
     const [filterCourse, setFilterCourse] = useState("ALL");
     const [filterCategory, setFilterCategory] = useState("ALL");
     const [filterStatus, setFilterStatus] = useState("ALL");
+    const [filterSemester, setFilterSemester] = useState("ALL");
 
 
     // Edit/Create State
@@ -181,7 +182,8 @@ export default function AdminNotesPage() {
         const matchesBranch = filterCourse === "ALL" || n.branch.includes(filterCourse);
         const matchesCategory = filterCategory === "ALL" || n.category === filterCategory;
         const matchesStatus = filterStatus === "ALL" || n.status === filterStatus;
-        return matchesSearch && matchesBranch && matchesCategory && matchesStatus;
+        const matchesSemester = filterSemester === "ALL" || n.semester.toString() === filterSemester;
+        return matchesSearch && matchesBranch && matchesCategory && matchesStatus && matchesSemester;
     });
 
     return (
@@ -243,6 +245,17 @@ export default function AdminNotesPage() {
                         <option value="ME">ME</option>
                         <option value="CE">CE</option>
                         <option value="EN">EN</option>
+                    </select>
+
+                    <select
+                        className="flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={filterSemester}
+                        onChange={(e) => setFilterSemester(e.target.value)}
+                    >
+                        <option value="ALL">All Semesters</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                            <option key={s} value={s.toString()}>Semester {s}</option>
+                        ))}
                     </select>
                 </div>
             </div>
