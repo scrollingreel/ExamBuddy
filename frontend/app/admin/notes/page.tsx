@@ -69,7 +69,11 @@ export default function AdminNotesPage() {
         const token = localStorage.getItem("token");
         try {
             const res = await fetch(`${API_BASE_URL}/notes/admin/all`, {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Cache-Control": "no-cache"
+                },
+                cache: 'no-store'
             });
             if (res.ok) {
                 const data = await res.json();
