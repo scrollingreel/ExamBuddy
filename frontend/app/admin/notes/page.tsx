@@ -45,6 +45,10 @@ export default function AdminNotesPage() {
     const [notes, setNotes] = useState<Note[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [filterCourse, setFilterCourse] = useState("ALL");
+    const [filterCategory, setFilterCategory] = useState("ALL");
+    const [filterStatus, setFilterStatus] = useState("ALL");
+
 
     // Edit/Create State
     const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -172,10 +176,13 @@ export default function AdminNotesPage() {
         }
     };
 
-    const filteredNotes = notes.filter(n =>
-        n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        n.subject.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredNotes = notes.filter(n => {
+        const matchesSearch = n.title.toLowerCase().includes(searchTerm.toLowerCase()) || n.subject.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesBranch = filterCourse === "ALL" || n.branch.includes(filterCourse);
+        const matchesCategory = filterCategory === "ALL" || n.category === filterCategory;
+        const matchesStatus = filterStatus === "ALL" || n.status === filterStatus;
+        return matchesSearch && matchesBranch && matchesCategory && matchesStatus;
+    });
 
     return (
         <div className="space-y-6">
@@ -189,14 +196,55 @@ export default function AdminNotesPage() {
                 </Button>
             </div>
 
-            <div className="flex items-center space-x-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search notes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                />
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="flex items-center space-x-2 w-full md:w-auto relative">
+                    <Search className="h-4 w-4 text-muted-foreground absolute left-3" />
+                    <Input
+                        placeholder="Search notes..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 w-full sm:w-[250px]"
+                    />
+                </div>
+
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <select
+                        className="flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="ALL">All Status</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="REJECTED">Rejected</option>
+                    </select>
+
+                    <select
+                        className="flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                    >
+                        <option value="ALL">All Types</option>
+                        <option value="NOTE">Notes</option>
+                        <option value="SESSIONAL_PAPER">Sessional Papers</option>
+                        <option value="UNIVERSITY_PAPER">University Papers</option>
+                    </select>
+
+                    <select
+                        className="flex h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300"
+                        value={filterCourse}
+                        onChange={(e) => setFilterCourse(e.target.value)}
+                    >
+                        <option value="ALL">All Branches</option>
+                        <option value="CSE">CSE</option>
+                        <option value="CSE and Allied">CSE and Allied</option>
+                        <option value="IT">IT</option>
+                        <option value="ECE">ECE</option>
+                        <option value="ME">ME</option>
+                        <option value="CE">CE</option>
+                        <option value="EN">EN</option>
+                    </select>
+                </div>
             </div>
 
             {isLoading ? (
