@@ -14,6 +14,7 @@ const adminSidebarItems = [
     { href: "/admin/notes", icon: Book, label: "Manage Notes" },
     { href: "/admin/circulars", icon: Megaphone, label: "Circulars" },
     { href: "/admin/users", icon: Users, label: "Manage Users" },
+    { href: "/admin/manual-subscriptions", icon: FileCheck, label: "Manual Subscriptions" },
     { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 

@@ -20,6 +20,11 @@ class SubscriptionPlan(str, enum.Enum):
     SEMESTER = "SEMESTER"
     YEARLY = "YEARLY"
 
+class SubscriptionStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -141,3 +146,19 @@ class SystemSetting(Base):
     value = Column(String, nullable=False)
     description = Column(String, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class ManualSubscriptionRequest(Base):
+    __tablename__ = "manual_subscriptions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    name = Column(String, nullable=False)
+    mobile_number = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    transaction_id = Column(String, nullable=False)
+    screenshot_url = Column(String, nullable=False)
+    plan_type = Column(String, nullable=False)
+    status = Column(String, default=SubscriptionStatus.PENDING)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")

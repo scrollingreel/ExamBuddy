@@ -118,3 +118,103 @@ async def verify_payment(
     
     await db.commit()
     return {"status": "success", "message": "Premium activated"}
+
+from ..models.models import ManualSubscriptionRequest, SubscriptionStatus
+from fastapi import UploadFile, File, Form
+from .deps import get_current_admin
+
+@router.post("/manual-subscribe")
+async def manual_subscribe(
+    name: str = Form(...),
+    mobile_number: str = Form(...),
+    email: str = Form(...),
+    transaction_id: str = Form(...),
+    plan_type: str = Form(...),
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    import os
+    from supabase import create_client, Client
+    
+    url: str = os.environ.get("SUPABASE_URL")
+    key: str = os.environ.get("SUPABASE_KEY")
+    
+    if not url or not key:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    supabase: Client = create_client(url, key)
+    file_ext = file.filename.split(".")[-1]
+    file_path = f"payments/{user.id}/{uuid.uuid4()}.{file_ext}"
+    content = await file.read()
+    
+    try:
+        supabase.storage.from_("notes").upload(
+            file_path,
+            content,
+            {"content-type": file.content_type}
+        )
+        file_url = supabase.storage.from_("notes").get_public_url(file_path)
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload screenshot")
+        
+    req = ManualSubscriptionRequest(
+        user_id=user.id,
+        name=name,
+        mobile_number=mobile_number,
+        email=email,
+        transaction_id=transaction_id,
+        plan_type=plan_type,
+        screenshot_url=file_url
+    )
+    db.add(req)
+    await db.commit()
+    return {"message": "Request submitted successfully"}
+
+@router.get("/admin/manual")
+async def list_manual_requests(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)  # Assuming admin dependency
+):
+    result = await db.execute(select(ManualSubscriptionRequest).order_by(ManualSubscriptionRequest.created_at.desc()))
+    return result.scalars().all()
+
+@router.put("/admin/manual/{req_id}/status")
+async def update_manual_request(
+    req_id: str,
+    status: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    from sqlalchemy.orm import selectinload
+    result = await db.execute(
+        select(ManualSubscriptionRequest)
+        .filter(ManualSubscriptionRequest.id == req_id)
+        .options(selectinload(ManualSubscriptionRequest.user))
+    )
+    req = result.scalars().first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+        
+    req.status = status
+    
+    if status == SubscriptionStatus.APPROVED:
+        # Create subscription
+        now = datetime.utcnow()
+        days = 365 if req.plan_type == "YEARLY" else 180
+        end_date = now + timedelta(days=days)
+        
+        new_sub = Subscription(
+            user_id=req.user_id,
+            plan_type=req.plan_type,
+            start_date=now,
+            end_date=end_date,
+            payment_id=f"manual_{req.transaction_id}",
+            is_active=True
+        )
+        db.add(new_sub)
+        req.user.is_premium = True
+        
+    await db.commit()
+    return {"message": "Status updated"}
