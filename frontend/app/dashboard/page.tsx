@@ -49,19 +49,14 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-bold tracking-tight">Overview</h2>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatsCard
                     title="Total Notes"
                     value="12"
                     icon={Book}
                     description="Uploaded this semester"
                 />
-                <StatsCard
-                    title="Study Hours"
-                    value={userProfile?.study_hours ? `${userProfile.study_hours}h` : "0h"}
-                    icon={Clock}
-                    description="Total logged time"
-                />
+
                 <StatsCard
                     title="Premium Access"
                     value={userProfile?.is_premium ? "Active" : "Basic"}
