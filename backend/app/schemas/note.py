@@ -20,6 +20,7 @@ class NoteUpdate(BaseModel):
     status: Optional[str] = None
     title: Optional[str] = None
     is_premium: Optional[bool] = None
+    branch: Optional[str] = None
 
 class NoteResponse(NoteBase):
     id: UUID

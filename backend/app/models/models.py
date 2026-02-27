@@ -38,7 +38,6 @@ class User(Base):
     sgpa = Column(Float, nullable=True)
     target_cgpa = Column(Float, nullable=True)
     study_hours = Column(Float, default=0.0)
-    last_active_at = Column(DateTime, default=datetime.utcnow)
     
     notes = relationship("Note", back_populates="uploader")
     subscriptions = relationship("Subscription", back_populates="user")

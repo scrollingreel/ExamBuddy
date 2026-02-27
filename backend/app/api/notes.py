@@ -104,7 +104,7 @@ async def list_notes(
         query = query.order_by(Note.created_at.desc())
     
     if branch:
-        query = query.filter(Note.branch == branch)
+        query = query.filter(Note.branch.ilike(f"%{branch}%"))
     if semester:
         query = query.filter(Note.semester == semester)
     if subject:
@@ -525,6 +525,8 @@ async def update_note(
         note.status = note_update.status
     if note_update.is_premium is not None:
         note.is_premium = note_update.is_premium
+    if note_update.branch is not None:
+        note.branch = note_update.branch
     # Add other fields as needed from NoteUpdate schema
         
     await db.commit()

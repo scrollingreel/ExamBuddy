@@ -151,13 +151,14 @@ export default function AdminNotesPage() {
                 },
                 body: JSON.stringify({
                     title: formData.title,
+                    branch: formData.branch,
                     status: selectedNote.status, // Keep existing status or allow edit
                     is_premium: formData.is_premium
                 })
             });
             if (res.ok) {
                 setIsEditOpen(false);
-                setNotes(notes.map(n => n.id === selectedNote.id ? { ...n, title: formData.title, is_premium: formData.is_premium } : n));
+                setNotes(notes.map(n => n.id === selectedNote.id ? { ...n, title: formData.title, branch: formData.branch, is_premium: formData.is_premium } : n));
                 fetchNotes(); // ensure sync
             } else {
                 alert("Update failed");
@@ -339,6 +340,10 @@ export default function AdminNotesPage() {
                         <div>
                             <Label htmlFor="edit-title">Title</Label>
                             <Input id="edit-title" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-branch">Branches (comma-separated)</Label>
+                            <Input id="edit-branch" placeholder="e.g. CS, IT" value={formData.branch} onChange={e => setFormData({ ...formData, branch: e.target.value })} required />
                         </div>
                         <div className="flex items-center gap-2">
                             <input
