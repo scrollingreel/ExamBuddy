@@ -80,93 +80,6 @@ export default function SubscriptionPage() {
         fetchPrices();
     }, []);
 
-    const loadRazorpay = () => {
-        return new Promise((resolve) => {
-            const script = document.createElement("script");
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
-    };
-
-    const handleSubscribe = async (plan: "SEMESTER" | "YEARLY") => {
-        setLoading(plan);
-        const token = localStorage.getItem("token");
-
-        try {
-            // 1. Load Script
-            const isLoaded = await loadRazorpay();
-            if (!isLoaded) {
-                alert("Failed to load Razorpay SDK");
-                setLoading(null);
-                return;
-            }
-
-            // 2. Create Order
-            const res = await fetch(`${API_BASE_URL}/subscription/create-order`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ plan_type: plan })
-            });
-
-            if (!res.ok) throw new Error("Failed to create order");
-            const data: RazorpayOrder = await res.json();
-
-            // 3. Open Checkout
-            const options = {
-                key: data.key_id,
-                amount: data.amount,
-                currency: data.currency,
-                name: "ExamBuddy Premium",
-                description: `${plan} Plan Subscription`,
-                order_id: data.order_id,
-                handler: async function (response: any) {
-                    // Verify Payment
-                    const verifyRes = await fetch(`${API_BASE_URL}/subscription/verify-payment`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature,
-                            plan_type: plan
-                        })
-                    });
-
-                    if (verifyRes.ok) {
-                        alert("Subscription activated successfully!");
-                        window.location.href = "/dashboard";
-                    } else {
-                        alert("Payment verification failed");
-                    }
-                },
-                prefill: {
-                    name: "Student Name",
-                    email: "student@example.com",
-                    contact: "9999999999"
-                },
-                theme: {
-                    color: "#7c3aed"
-                }
-            };
-
-            const rzp = new (window as any).Razorpay(options);
-            rzp.open();
-
-        } catch (error) {
-            console.error(error);
-            alert("Something went wrong");
-        } finally {
-            setLoading(null);
-        }
-    };
 
     const handleManualSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -235,15 +148,6 @@ export default function SubscriptionPage() {
                     <CardFooter className="flex-col gap-2">
                         <Button
                             className="w-full"
-                            onClick={() => handleSubscribe("SEMESTER")}
-                            disabled={loading === "SEMESTER"}
-                        >
-                            {loading === "SEMESTER" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Subscribe Sem
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="w-full"
                             onClick={() => { setManualPlan("SEMESTER"); setIsManualOpen(true); }}
                         >
                             Pay Manually (QR)
@@ -274,15 +178,6 @@ export default function SubscriptionPage() {
                     <CardFooter className="flex-col gap-2">
                         <Button
                             className="w-full bg-purple-600 hover:bg-purple-700"
-                            onClick={() => handleSubscribe("YEARLY")}
-                            disabled={loading === "YEARLY"}
-                        >
-                            {loading === "YEARLY" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Subscribe Year
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="w-full"
                             onClick={() => { setManualPlan("YEARLY"); setIsManualOpen(true); }}
                         >
                             Pay Manually (QR)
