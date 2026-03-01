@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, Brain, ShieldCheck, Sparkles, CheckCircle } from "lucide-react";
+import { ArrowRight, BookOpen, ShieldCheck, Sparkles, CheckCircle } from "lucide-react";
 
 export default function Home() {
   return (
@@ -49,10 +49,10 @@ export default function Home() {
             </div>
             <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
               Master Your Exams with <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Unified Notes & AI</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Unified Notes</span>
             </h1>
             <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8 text-slate-600 dark:text-slate-300">
-              Access university-specific notes, get instant AI help for assignments, and track important updates. The ultimate companion for BTech students.
+              Access university-specific notes and track important updates. The ultimate companion for BTech students.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Link href="/register">
@@ -93,16 +93,11 @@ export default function Home() {
                 Stop searching through WhatsApp groups. Get verified materials in one place.
               </p>
             </div>
-            <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 lg:grid-cols-4 md:max-w-[70rem]">
+            <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3 md:max-w-[70rem]">
               <FeatureCard
                 icon={<BookOpen className="h-8 w-8 text-blue-500" />}
                 title="Verified Notes"
                 description="Access high-quality, admin-approved notes specific to your university and branch."
-              />
-              <FeatureCard
-                icon={<Brain className="h-8 w-8 text-purple-500" />}
-                title="AI Tutor"
-                description="Stuck on an assignment? Our AI chatbot explains answers step-by-step instantly."
               />
               <FeatureCard
                 icon={<ShieldCheck className="h-8 w-8 text-green-500" />}
