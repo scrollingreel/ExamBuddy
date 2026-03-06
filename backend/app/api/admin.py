@@ -6,6 +6,7 @@ from ..models.models import SystemSetting, User, UserRole
 from .deps import get_current_admin
 from pydantic import BaseModel
 from typing import List
+from ..schemas.user import UserResponse
 
 router = APIRouter()
 
@@ -72,3 +73,28 @@ async def get_public_config(db: AsyncSession = Depends(get_db)):
             pass
             
     return config
+
+@router.get("/users", response_model=List[UserResponse])
+async def get_users(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    result = await db.execute(select(User))
+    return result.scalars().all()
+
+@router.patch("/users/{user_id}/premium", response_model=UserResponse)
+async def toggle_premium(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_premium = not user.is_premium
+    await db.commit()
+    await db.refresh(user)
+    return user
+

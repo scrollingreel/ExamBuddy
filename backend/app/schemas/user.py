@@ -11,6 +11,8 @@ class UserCreate(UserBase):
 class UserLogin(UserBase):
     password: str
 
+from datetime import datetime
+
 class UserResponse(UserBase):
     id: UUID
     role: str
@@ -22,6 +24,7 @@ class UserResponse(UserBase):
     sgpa: Optional[float] = None
     target_cgpa: Optional[float] = None
     study_hours: float = 0.0
+    created_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
