@@ -196,13 +196,14 @@ export default function SubscriptionPage() {
                         </DialogDescription>
                     </DialogHeader>
 
+                    {/* QR Code and UPI ID section temporarily removed
                     <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="bg-slate-100 p-4 rounded-lg flex items-center justify-center">
-                            {/* Placeholder QR */}
                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=dummy@upi&pn=ExamBuddy&cu=INR" alt="QR Code" className="w-40 h-40" />
                         </div>
                         <p className="text-sm text-slate-500 font-mono">UPI: dummy@upi</p>
                     </div>
+                    */}
 
                     <form onSubmit={handleManualSubmit} className="space-y-4 mt-4">
                         <div className="grid gap-2">
