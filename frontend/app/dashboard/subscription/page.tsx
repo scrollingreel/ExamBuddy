@@ -125,6 +125,9 @@ export default function SubscriptionPage() {
                 <p className="text-muted-foreground text-lg">
                     Unlock unlimited access to all notes, AI tutor, and previous year papers.
                 </p>
+                <p className="text-primary font-semibold text-lg mt-2">
+                    This feature will be available soon
+                </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
