@@ -37,33 +37,31 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     const fetchProfile = async () => {
         setIsLoading(true);
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            setUser(null);
-            setIsGuest(true);
-            setIsLoading(false);
-            return;
-        }
 
         try {
-            // [CACHE] Check sessionStorage/localStorage? 
-            // We consciously decide to rely on network or simple memory cache here.
-            // If we want persistent cache across reloads, we can use localStorage.
-            // But we must be careful to invalidate it.
+            // Always get the fresh token from Supabase's session.
+            // This ensures we use a valid, auto-refreshed token instead of
+            // a potentially expired one stored manually in localStorage.
+            const { data: { session } } = await supabase.auth.getSession();
 
-            // To ensure we don't show stale "Admin" data to "Student", 
-            // we really should fetch fresh data or be very careful.
-            // My previous fix clears 'user_profile_cache' on login/logout.
-            // So we can check that cache.
+            if (!session) {
+                setUser(null);
+                setIsGuest(true);
+                localStorage.removeItem("token");
+                setIsLoading(false);
+                return;
+            }
 
+            // Always sync localStorage with the latest token
+            const token = session.access_token;
+            localStorage.setItem("token", token);
+
+            // Check cache for instant UI while we fetch fresh data
             const cached = localStorage.getItem("user_profile_cache");
             if (cached) {
                 try {
                     const parsed = JSON.parse(cached);
                     setUser(parsed);
-                    // If we have cache, we can opt to NOT fetch, or fetch in background.
-                    // Let's fetch in background to update study hours etc.
                     setIsLoading(false);
                     setIsGuest(false);
                 } catch (e) {
@@ -82,7 +80,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem("user_profile_cache", JSON.stringify(data));
             } else {
                 if (res.status === 401) {
-                    // Token expired
+                    // Token is truly invalid (e.g. user deleted, session revoked)
                     logout();
                 } else {
                     console.error("Failed to fetch profile:", res.status);
@@ -95,12 +93,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user_profile_cache");
+        await supabase.auth.signOut();
         setUser(null);
         setIsGuest(true);
-        router.push("/login"); // Optional: redirect
+        router.push("/login");
     };
 
     useEffect(() => {
@@ -109,36 +108,37 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (session) {
-                const currentToken = localStorage.getItem("token");
-                if (currentToken !== session.access_token) {
-                    localStorage.setItem("token", session.access_token);
-                    // Clear old cache if user changed
-                    localStorage.removeItem("user_profile_cache");
-                    await fetchProfile();
-                    // If we are on login page, redirect to dashboard
-                    if (window.location.pathname === '/login' || window.location.pathname === '/') {
-                        router.push('/dashboard');
-                    }
-                } else {
-                    // Token matches, just fetch profile if needed
-                    fetchProfile();
+                // Always sync the token from Supabase's session
+                localStorage.setItem("token", session.access_token);
+                await fetchProfile();
+                // If we are on login page, redirect to dashboard
+                if (window.location.pathname === '/login' || window.location.pathname === '/') {
+                    router.push('/dashboard');
                 }
             } else {
-                fetchProfile(); // Will set user to null
+                // No session — clear everything
+                localStorage.removeItem("token");
+                localStorage.removeItem("user_profile_cache");
+                setUser(null);
+                setIsGuest(true);
+                setIsLoading(false);
             }
 
-            // 2. Set up listener for future changes
+            // 2. Set up listener for future changes (token refresh, sign in/out)
             const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    const currentToken = localStorage.getItem("token");
-                    if (currentToken !== session.access_token) {
-                        localStorage.setItem("token", session.access_token);
-                        localStorage.removeItem("user_profile_cache");
-                        fetchProfile();
+                if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+                    localStorage.setItem("token", session.access_token);
+                    localStorage.removeItem("user_profile_cache");
+                    fetchProfile();
+                    if (event === 'SIGNED_IN') {
                         router.push('/dashboard');
                     }
                 } else if (event === 'SIGNED_OUT') {
-                    logout();
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user_profile_cache");
+                    setUser(null);
+                    setIsGuest(true);
+                    router.push("/login");
                 }
             });
 
