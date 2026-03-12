@@ -35,8 +35,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const [isGuest, setIsGuest] = useState(false);
     const router = useRouter();
 
-    const fetchProfile = async () => {
-        setIsLoading(true);
+    const fetchProfile = async (showLoading = true) => {
+        // Only show loading spinner on initial load, not on background refreshes
+        if (showLoading && !user) {
+            setIsLoading(true);
+        }
 
         try {
             // Always get the fresh token from Supabase's session.
@@ -126,13 +129,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
             // 2. Set up listener for future changes (token refresh, sign in/out)
             const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-                if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+                if (event === 'TOKEN_REFRESHED' && session) {
+                    // Token was refreshed (e.g. tab regained focus) — just update the token silently
+                    localStorage.setItem("token", session.access_token);
+                } else if (event === 'SIGNED_IN' && session) {
                     localStorage.setItem("token", session.access_token);
                     localStorage.removeItem("user_profile_cache");
                     fetchProfile();
-                    if (event === 'SIGNED_IN') {
-                        router.push('/dashboard');
-                    }
+                    router.push('/dashboard');
                 } else if (event === 'SIGNED_OUT') {
                     localStorage.removeItem("token");
                     localStorage.removeItem("user_profile_cache");
