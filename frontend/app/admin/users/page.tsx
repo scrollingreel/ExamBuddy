@@ -11,7 +11,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, Shield, ShieldCheck, Crown } from "lucide-react";
+import { Loader2, Shield, ShieldCheck, Crown, Users } from "lucide-react";
 
 interface User {
     id: string;
@@ -72,11 +72,26 @@ export default function ManageUsersPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight">Manage Users</h2>
-                <p className="text-muted-foreground">
-                    View and manage all registered users.
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Manage Users</h2>
+                    <p className="text-muted-foreground">
+                        View and manage all registered users.
+                    </p>
+                </div>
+                {!loading && (
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-2 shadow-sm">
+                            <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/50">
+                                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-muted-foreground">Total Users</p>
+                                <p className="text-xl font-bold leading-none mt-1">{users.length}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {loading ? (
