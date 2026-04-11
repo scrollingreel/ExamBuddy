@@ -1,7 +1,7 @@
 
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { API_BASE_URL } from "@/lib/config";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -34,8 +34,22 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [isGuest, setIsGuest] = useState(false);
     const router = useRouter();
+    
+    // Prevent duplicate API calls and throttling
+    const isFetchingRef = useRef(false);
+    const lastFetchTimeRef = useRef(0);
+    const initializedRef = useRef(false);
 
-    const fetchProfile = async (showLoading = true) => {
+    const fetchProfile = async (showLoading = true, force = false) => {
+        const now = Date.now();
+        
+        // Prevent duplicate consecutive calls and throttle to once every 300 seconds (5 mins) unless forced
+        if (isFetchingRef.current || (!force && now - lastFetchTimeRef.current < 300000 && user)) {
+            return;
+        }
+
+        isFetchingRef.current = true;
+
         // Only show loading spinner on initial load, not on background refreshes
         if (showLoading && !user) {
             setIsLoading(true);
@@ -92,6 +106,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Profile fetch network error", error);
         } finally {
+            lastFetchTimeRef.current = Date.now();
+            isFetchingRef.current = false;
             setIsLoading(false);
         }
     };
@@ -106,6 +122,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
+        if (initializedRef.current) return;
+        initializedRef.current = true;
+
         const initializeAuth = async () => {
             // 1. Check for existing session (handles OAuth redirect too)
             const { data: { session } } = await supabase.auth.getSession();
@@ -134,9 +153,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                     localStorage.setItem("token", session.access_token);
                 } else if (event === 'SIGNED_IN' && session) {
                     localStorage.setItem("token", session.access_token);
-                    localStorage.removeItem("user_profile_cache");
-                    fetchProfile();
-                    router.push('/dashboard');
+                    // Only fetch if we don't have a user, to prevent tab focus SIGNED_IN events from triggering fetch
+                    fetchProfile(false, false);
+                    if (window.location.pathname === '/login' || window.location.pathname === '/') {
+                        router.push('/dashboard');
+                    }
                 } else if (event === 'SIGNED_OUT') {
                     localStorage.removeItem("token");
                     localStorage.removeItem("user_profile_cache");
