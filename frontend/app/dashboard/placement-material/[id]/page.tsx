@@ -33,17 +33,25 @@ export default function PlacementMaterialDetailPage() {
     
     const [material, setMaterial] = useState<MaterialDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const fetchMaterial = async () => {
         const token = localStorage.getItem("token");
         try {
+            const headers: Record<string, string> = {};
+            if (token && token !== "null" && token !== "undefined") {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const res = await fetch(`${API_BASE_URL}/placement/materials/${materialId}`, {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers
             });
             if (res.ok) {
                 setMaterial(await res.json());
             } else {
-                router.push("/dashboard/placement-material");
+                const text = await res.text();
+                console.error("Failed to fetch material:", res.status, text);
+                setErrorMsg(`Server Error: ${res.status}. ${text}`);
             }
         } catch (error) {
             console.error(error);
@@ -90,6 +98,20 @@ export default function PlacementMaterialDetailPage() {
                 <div className="space-y-3 mt-6">
                     <Skeleton className="h-16 w-full" />
                     <Skeleton className="h-16 w-full" />
+                </div>
+            </div>
+        );
+    }
+
+    if (errorMsg) {
+        return (
+            <div className="space-y-6 pt-2 pb-8 max-w-4xl mx-auto">
+                <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/placement-material")} className="-ml-3 text-muted-foreground">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Materials
+                </Button>
+                <div className="p-6 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-900">
+                    <h3 className="font-semibold mb-2">Error Loading Resource</h3>
+                    <p className="text-sm font-mono break-all">{errorMsg}</p>
                 </div>
             </div>
         );
