@@ -2,7 +2,7 @@
 
 import { useProfile } from "@/hooks/use-profile";
 import { cn } from "@/lib/utils";
-import { BookOpen, CreditCard, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, Settings, Trophy } from "lucide-react";
+import { BookOpen, CreditCard, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, Settings, Trophy, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -15,6 +15,7 @@ const sidebarItems = [
     { href: "/dashboard/sessional-papers", icon: FileText, label: "Sessional Papers" },
     { href: "/dashboard/university-papers", icon: GraduationCap, label: "University Papers" },
     { href: "/dashboard/leaderboard", icon: Trophy, label: "Leaderboard" },
+    { href: "/dashboard/placement-material", icon: Briefcase, label: "Placement Material" },
     { href: "/dashboard/subscription", icon: CreditCard, label: "Subscription" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
