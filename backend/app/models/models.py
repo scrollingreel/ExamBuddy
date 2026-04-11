@@ -162,3 +162,38 @@ class ManualSubscriptionRequest(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User")
+
+class PlacementMaterial(Base):
+    __tablename__ = "placement_materials"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String, nullable=False)
+    company = Column(String, nullable=False)
+    category = Column(String, nullable=False)
+    type = Column(String, nullable=False, default="Coding Sheet")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    questions = relationship("PlacementQuestion", back_populates="material", cascade="all, delete-orphan")
+
+class PlacementQuestion(Base):
+    __tablename__ = "placement_questions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    material_id = Column(UUID(as_uuid=True), ForeignKey("placement_materials.id", ondelete="CASCADE"))
+    title = Column(String, nullable=False)
+    link = Column(String, nullable=False)  # Link to LC, GFG, etc.
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    material = relationship("PlacementMaterial", back_populates="questions")
+
+class PlacementProgress(Base):
+    __tablename__ = "placement_progress"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    question_id = Column(UUID(as_uuid=True), ForeignKey("placement_questions.id", ondelete="CASCADE"))
+    completed_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
+    question = relationship("PlacementQuestion")
+

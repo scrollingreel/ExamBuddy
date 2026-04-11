@@ -120,12 +120,13 @@ async def root():
 
 
 
-from .api import auth, notes, payments, admin, circulars
+from .api import auth, notes, payments, admin, circulars, placement
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(notes.router, prefix="/notes", tags=["Notes"])
 app.include_router(payments.router, prefix="/subscription", tags=["Subscription"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(circulars.router, prefix="/circulars", tags=["Circulars"])
+app.include_router(placement.router, prefix="/placement", tags=["Placement"])
 
 
 

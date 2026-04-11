@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ShieldCheck, FileCheck, LogOut, Users, Book, Megaphone, Settings, Menu } from "lucide-react";
+import { ShieldCheck, FileCheck, LogOut, Users, Book, Megaphone, Settings, Menu, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -15,6 +15,7 @@ const adminSidebarItems = [
     { href: "/admin/circulars", icon: Megaphone, label: "Circulars" },
     { href: "/admin/users", icon: Users, label: "Manage Users" },
     { href: "/admin/manual-subscriptions", icon: FileCheck, label: "Manual Subscriptions" },
+    { href: "/admin/placement-material", icon: Briefcase, label: "Placement" },
     { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 

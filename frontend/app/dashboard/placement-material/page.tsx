@@ -1,88 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Briefcase, Code, Terminal, Clock, FileText, CheckCircle2, Circle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Dummy data for placement materials
-const materials = [
-    {
-        id: 1,
-        title: "TCS NQT 2024 Actual Papers",
-        company: "TCS",
-        category: "Aptitude",
-        type: "Previous Papers",
-        questions: 100,
-        completed: 15,
-        icon: Briefcase,
-        color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-    },
-    {
-        id: 2,
-        title: "Top 50 Amazon SDE 1 Questions",
-        company: "Amazon",
-        category: "DSA",
-        type: "Coding Sheet",
-        questions: 50,
-        completed: 50,
-        icon: Code,
-        color: "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
-    },
-    {
-        id: 3,
-        title: "Google Interview Experience 2024",
-        company: "Google",
-        category: "Interview Experience",
-        type: "Document",
-        questions: 1,
-        completed: 0,
-        icon: FileText,
-        color: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
-    },
-    {
-        id: 4,
-        title: "System Design for Freshers",
-        company: "General",
-        category: "System Design",
-        type: "Crash Course",
-        questions: 20,
-        completed: 5,
-        icon: Terminal,
-        color: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
-    },
-    {
-        id: 5,
-        title: "Infosys Pseudo Code Questions",
-        company: "Infosys",
-        category: "Aptitude",
-        type: "Mock Test",
-        questions: 30,
-        completed: 0,
-        icon: Clock,
-        color: "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
-    },
-    {
-        id: 6,
-        title: "Accenture Communication Round",
-        company: "Accenture",
-        category: "HR",
-        type: "Tips & Tricks",
-        questions: 15,
-        completed: 10,
-        icon: Search,
-        color: "bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
-    }
-];
-
-const categories = ["All", "DSA", "System Design", "Aptitude", "HR", "Interview Experience"];
-const companies = ["All", "TCS", "Amazon", "Google", "Infosys", "Accenture"];
+interface Material {
+    id: string;
+    title: string;
+    company: string;
+    category: string;
+    type: string;
+    questions_count: number;
+    completed_count: number;
+}
 
 export default function PlacementMaterialPage() {
+    const [materials, setMaterials] = useState<Material[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
     const [activeCompany, setActiveCompany] = useState("All");
+
+    useEffect(() => {
+        const fetchMaterials = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/placement/materials`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMaterials(data);
+                }
+            } catch (error) {
+                console.error("Error fetching materials", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchMaterials();
+    }, []);
+
+    const categories = ["All", ...Array.from(new Set(materials.map(m => m.category)))];
+    const companies = ["All", ...Array.from(new Set(materials.map(m => m.company)))];
 
     const filteredMaterials = materials.filter(m => {
         const matchesSearch = m.title.toLowerCase().includes(searchQuery.toLowerCase()) || m.company.toLowerCase().includes(searchQuery.toLowerCase());
@@ -90,6 +52,21 @@ export default function PlacementMaterialPage() {
         const matchesCompany = activeCompany === "All" || m.company === activeCompany;
         return matchesSearch && matchesCategory && matchesCompany;
     });
+
+    const getIconForType = (type: string) => {
+        if (type.includes("Code") || type.includes("DSA")) return Code;
+        if (type.includes("Paper") || type.includes("Test")) return Clock;
+        if (type.includes("Design")) return Terminal;
+        if (type.includes("Experience")) return FileText;
+        return Briefcase;
+    };
+
+    const getColorForType = (type: string) => {
+        if (type.includes("Code")) return "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400";
+        if (type.includes("Paper")) return "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400";
+        if (type.includes("Experience")) return "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400";
+        return "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400";
+    };
 
     return (
         <div className="flex-1 space-y-6 pt-2 pb-8">
@@ -101,7 +78,6 @@ export default function PlacementMaterialPage() {
                     </div>
                 </div>
 
-                {/* Search Bar */}
                 <div className="relative max-w-2xl">
                     <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     <Input
@@ -113,7 +89,6 @@ export default function PlacementMaterialPage() {
                 </div>
             </div>
 
-            {/* Quick Filters */}
             <div className="space-y-4">
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     <span className="text-sm font-medium text-slate-500 shrink-0 mr-2">Topic:</span>
@@ -122,13 +97,13 @@ export default function PlacementMaterialPage() {
                             key={cat}
                             variant={activeCategory === cat ? "default" : "outline"}
                             size="sm"
-                            onClick={() => setActiveCategory(cat)}
+                            onClick={() => setActiveCategory(cat as string)}
                             className={cn(
                                 "rounded-full transition-all shrink-0",
                                 activeCategory === cat ? "shadow-md" : "hover:bg-slate-100 dark:hover:bg-slate-800"
                             )}
                         >
-                            {cat}
+                            {cat as string}
                         </Button>
                     ))}
                 </div>
@@ -140,36 +115,41 @@ export default function PlacementMaterialPage() {
                             key={comp}
                             variant={activeCompany === comp ? "secondary" : "outline"}
                             size="sm"
-                            onClick={() => setActiveCompany(comp)}
+                            onClick={() => setActiveCompany(comp as string)}
                             className="rounded-full transition-all shrink-0"
                         >
-                            {comp}
+                            {comp as string}
                         </Button>
                     ))}
                 </div>
             </div>
 
-            {/* Content Grid */}
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-6">
-                {filteredMaterials.length === 0 ? (
+                {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-44 rounded-2xl" />
+                    ))
+                ) : filteredMaterials.length === 0 ? (
                     <div className="col-span-full py-12 text-center text-muted-foreground">
                         <Search className="h-12 w-12 mx-auto mb-4 opacity-20" />
                         <p>No materials found matching your filters.</p>
                     </div>
                 ) : (
                     filteredMaterials.map((material) => {
-                        const progress = material.questions > 0 ? Math.round((material.completed / material.questions) * 100) : 0;
-                        const isDone = progress === 100;
+                        const progress = material.questions_count > 0 ? Math.round((material.completed_count / material.questions_count) * 100) : 0;
+                        const isDone = progress === 100 && material.questions_count > 0;
+                        const Icon = getIconForType(material.type);
 
                         return (
-                            <div
+                            <Link
+                                href={`/dashboard/placement-material/${material.id}`}
                                 key={material.id}
-                                className="group relative flex flex-col justify-between rounded-2xl border bg-white dark:bg-slate-950 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 cursor-pointer"
+                                className="group relative flex flex-col justify-between rounded-2xl border bg-white dark:bg-slate-950 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 cursor-pointer block"
                             >
                                 <div>
                                     <div className="flex items-start justify-between mb-4">
-                                        <div className={cn("p-2.5 rounded-xl", material.color)}>
-                                            <material.icon className="h-5 w-5" />
+                                        <div className={cn("p-2.5 rounded-xl", getColorForType(material.type))}>
+                                            <Icon className="h-5 w-5" />
                                         </div>
                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
                                             {material.company}
@@ -195,23 +175,27 @@ export default function PlacementMaterialPage() {
                                             ) : (
                                                 <Circle className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
                                             )}
-                                            {material.questions > 1 ? `${material.completed} / ${material.questions} Qs` : isDone ? "Completed" : "Not Started"}
+                                            {material.questions_count > 0 ? `${material.completed_count} / ${material.questions_count} Qs` : "Link Collection"}
                                         </span>
-                                        <span className="font-medium text-slate-700 dark:text-slate-300">
-                                            {progress}%
-                                        </span>
+                                        {material.questions_count > 0 && (
+                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                {progress}%
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                        <div 
-                                            className={cn(
-                                                "h-full rounded-full transition-all duration-500",
-                                                isDone ? "bg-green-500" : "bg-blue-600 dark:bg-blue-500"
-                                            )}
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    </div>
+                                    {material.questions_count > 0 && (
+                                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div 
+                                                className={cn(
+                                                    "h-full rounded-full transition-all duration-500",
+                                                    isDone ? "bg-green-500" : "bg-blue-600 dark:bg-blue-500"
+                                                )}
+                                                style={{ width: `${progress}%` }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })
                 )}
