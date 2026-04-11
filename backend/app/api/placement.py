@@ -56,11 +56,17 @@ async def get_material(
         if q.is_completed:
             completed_count += 1
             
-    material.questions = questions
-    material.questions_count = len(questions)
-    material.completed_count = completed_count
-    
-    return material
+    return {
+        "id": material.id,
+        "title": material.title,
+        "company": material.company,
+        "category": material.category,
+        "type": material.type,
+        "created_at": material.created_at,
+        "questions_count": len(questions),
+        "completed_count": completed_count,
+        "questions": questions
+    }
 
 @router.post("/materials", response_model=PlacementMaterialSchema)
 async def create_material(
