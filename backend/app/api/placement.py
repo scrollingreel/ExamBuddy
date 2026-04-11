@@ -14,7 +14,7 @@ from ..schemas.placement import (
     PlacementQuestionCreate,
     PlacementQuestionUpdate
 )
-from .deps import get_current_admin, get_current_user
+from .deps import get_current_admin, get_current_user, get_current_user_optional
 
 router = APIRouter()
 
@@ -35,7 +35,7 @@ async def get_materials(db: AsyncSession = Depends(get_db)):
 async def get_material(
     material_id: UUID, 
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     result = await db.execute(select(PlacementMaterial).filter(PlacementMaterial.id == material_id))
     material = result.scalars().first()
@@ -45,8 +45,10 @@ async def get_material(
     q_result = await db.execute(select(PlacementQuestion).filter(PlacementQuestion.material_id == material_id).order_by(PlacementQuestion.created_at.asc()))
     questions = list(q_result.scalars().all())
     
-    p_result = await db.execute(select(PlacementProgress).filter(PlacementProgress.user_id == current_user.id))
-    progresses = {p.question_id: True for p in p_result.scalars().all()}
+    progresses = {}
+    if current_user:
+        p_result = await db.execute(select(PlacementProgress).filter(PlacementProgress.user_id == current_user.id))
+        progresses = {p.question_id: True for p in p_result.scalars().all()}
     
     completed_count = 0
     for q in questions:
