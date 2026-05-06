@@ -6,7 +6,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Download, Share2 } from "lucide-react";
 
 interface NoteViewerProps {
     isOpen: boolean;
@@ -34,19 +34,20 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
                     <DialogDescription className="sr-only">Viewing note {title}</DialogDescription>
 
                     <div className="flex gap-2">
-                        {/* Open Original button removed per user request */}
+                        <Button variant="outline" size="sm" onClick={() => {
+                            navigator.clipboard.writeText(fileUrl);
+                            alert("Link copied to clipboard!");
+                        }}>
+                            <Share2 className="h-4 w-4 mr-2" /> Share
+                        </Button>
+                        <Button variant="default" size="sm" asChild>
+                            <a href={fileUrl} download target="_blank" rel="noopener noreferrer">
+                                <Download className="h-4 w-4 mr-2" /> Download
+                            </a>
+                        </Button>
                     </div>
                 </DialogHeader>
                 <div className="flex-1 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden rounded-md relative group">
-                    {/* Security overlay to prevent simple right-click save on images */}
-                    {!isPdf && (
-                        <div className="absolute inset-0 z-10 bg-transparent" onContextMenu={(e) => e.preventDefault()} />
-                    )}
-
-                    {/* Block Google Docs Viewer 'Pop-out' button for all PDFs to prevent easy download */}
-                    {isPdf && (
-                        <div className="absolute top-0 right-0 h-14 w-14 z-20 bg-transparent" />
-                    )}
 
                     {isPdf ? (
                         <iframe
@@ -60,7 +61,6 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
                                 src={fileUrl}
                                 alt={title}
                                 className="max-w-full max-h-full object-contain"
-                                onContextMenu={(e) => e.preventDefault()}
                             />
                         </div>
                     )}

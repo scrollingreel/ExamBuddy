@@ -24,7 +24,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Book, Download, FileText, Loader2, Plus, Search, Eye } from "lucide-react";
+import { Book, Download, FileText, Loader2, Plus, Search, Eye, Share2 } from "lucide-react";
 import { NoteViewer } from "@/components/notes/note-viewer";
 
 interface Note {
@@ -404,26 +404,23 @@ export default function UniversityPapersPage() {
                                             <Eye className="mr-2 h-4 w-4" /> View
                                         </Button>
                                         <Button
-                                            variant={note.is_premium ? "default" : "secondary"}
+                                            variant="outline"
                                             className="flex-1"
                                             onClick={() => {
-                                                const token = localStorage.getItem("token");
-                                                if (token) {
-                                                    fetch(`${API_BASE_URL}/notes/${note.id}/download`, {
-                                                        method: "POST",
-                                                        headers: { Authorization: `Bearer ${token}` }
-                                                    })
-                                                        .then(res => {
-                                                            if (res.ok) alert("Paper saved to Offline Library!");
-                                                            else alert("Failed to save paper.");
-                                                        })
-                                                        .catch(console.error);
-                                                } else {
-                                                    alert("Please login to save.");
-                                                }
+                                                navigator.clipboard.writeText(note.file_url);
+                                                alert("Link copied to clipboard!");
                                             }}
                                         >
-                                            <Download className="mr-2 h-4 w-4" /> Save
+                                            <Share2 className="mr-2 h-4 w-4" /> Share
+                                        </Button>
+                                        <Button
+                                            variant={note.is_premium ? "default" : "secondary"}
+                                            className="flex-1"
+                                            asChild
+                                        >
+                                            <a href={note.file_url} download target="_blank" rel="noopener noreferrer">
+                                                <Download className="mr-2 h-4 w-4" /> Download
+                                            </a>
                                         </Button>
                                     </div>
                                 )}
