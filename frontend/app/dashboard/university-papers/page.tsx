@@ -409,7 +409,7 @@ export default function UniversityPapersPage() {
                                         </a>
                                     </Button>
                                 ) : (
-                                    <div className="flex gap-2 w-full">
+                                    <div className="flex flex-wrap gap-2 w-full">
                                         <Button
                                             variant="secondary"
                                             className="flex-1"

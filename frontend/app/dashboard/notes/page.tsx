@@ -412,7 +412,7 @@ export default function NotesPage() {
                                     initialUserVote={0} /** TODO: Fetch user vote status if possible, currently separate API call or need logic */
                                 />
 
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                     <ReviewSection
                                         noteId={note.id}
                                         noteTitle={note.title}
@@ -426,7 +426,7 @@ export default function NotesPage() {
                                             </a>
                                         </Button>
                                     ) : (
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2">
                                             {/* Show View button for ALL notes that are not locked */}
                                             <Button
                                                 variant="secondary"
