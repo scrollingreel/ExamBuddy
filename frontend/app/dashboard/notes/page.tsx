@@ -85,6 +85,20 @@ export default function NotesPage() {
         }
     }, [profileLoading, user, initDone]);
 
+    // Auto-open note if ID is in URL
+    useEffect(() => {
+        if (!isLoading && notes.length > 0) {
+            const params = new URLSearchParams(window.location.search);
+            const viewId = params.get("id");
+            if (viewId && !viewingNote) {
+                const noteToView = notes.find(n => n.id === viewId);
+                if (noteToView) {
+                    setViewingNote(noteToView);
+                }
+            }
+        }
+    }, [isLoading, notes, viewingNote]);
+
     const fetchNotes = async (
         semester: number | "ALL" = selectedSemester,
         sortMethod: "newest" | "rating" = sortBy,
@@ -423,7 +437,8 @@ export default function NotesPage() {
                                             </Button>
 
                                             <Button variant="outline" size="sm" onClick={() => {
-                                                navigator.clipboard.writeText(note.file_url);
+                                                const shareUrl = `${window.location.origin}/dashboard/notes?id=${note.id}`;
+                                                navigator.clipboard.writeText(shareUrl);
                                                 alert("Link copied to clipboard!");
                                             }}>
                                                 <Share2 className="mr-2 h-4 w-4" /> Share
@@ -446,10 +461,17 @@ export default function NotesPage() {
             {viewingNote && (
                 <NoteViewer
                     isOpen={!!viewingNote}
-                    onClose={() => setViewingNote(null)}
+                    onClose={() => {
+                        setViewingNote(null);
+                        // Optional: remove query param from URL without reloading
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('id');
+                        window.history.pushState({}, '', url);
+                    }}
                     title={viewingNote.title}
                     fileUrl={viewingNote.file_url}
                     isPremium={viewingNote.is_premium}
+                    shareUrl={typeof window !== "undefined" ? `${window.location.origin}/dashboard/notes?id=${viewingNote.id}` : undefined}
                 />
             )}
         </div>

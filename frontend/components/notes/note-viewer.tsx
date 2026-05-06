@@ -14,9 +14,10 @@ interface NoteViewerProps {
     title: string;
     fileUrl: string;
     isPremium?: boolean;
+    shareUrl?: string;
 }
 
-export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteViewerProps) {
+export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium, shareUrl }: NoteViewerProps) {
     const isPdf = fileUrl.toLowerCase().includes(".pdf");
     const isLocal = fileUrl.includes("localhost") || fileUrl.includes("127.0.0.1");
 
@@ -35,7 +36,7 @@ export function NoteViewer({ isOpen, onClose, title, fileUrl, isPremium }: NoteV
 
                     <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => {
-                            navigator.clipboard.writeText(fileUrl);
+                            navigator.clipboard.writeText(shareUrl || fileUrl);
                             alert("Link copied to clipboard!");
                         }}>
                             <Share2 className="h-4 w-4 mr-2" /> Share

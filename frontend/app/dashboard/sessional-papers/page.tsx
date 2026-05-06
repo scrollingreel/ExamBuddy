@@ -78,6 +78,20 @@ export default function SessionalPapersPage() {
         }
     }, [profileLoading, user, initDone]);
 
+    // Auto-open note if ID is in URL
+    useEffect(() => {
+        if (!isLoading && notes.length > 0) {
+            const params = new URLSearchParams(window.location.search);
+            const viewId = params.get("id");
+            if (viewId && !viewingNote) {
+                const noteToView = notes.find(n => n.id === viewId);
+                if (noteToView) {
+                    setViewingNote(noteToView);
+                }
+            }
+        }
+    }, [isLoading, notes, viewingNote]);
+
     const fetchNotes = async (
         semester: number | "ALL" = selectedSemester,
         branch: string = selectedBranch
@@ -365,7 +379,8 @@ export default function SessionalPapersPage() {
                                             variant="outline"
                                             className="flex-1"
                                             onClick={() => {
-                                                navigator.clipboard.writeText(note.file_url);
+                                                const shareUrl = `${window.location.origin}/dashboard/sessional-papers?id=${note.id}`;
+                                                navigator.clipboard.writeText(shareUrl);
                                                 alert("Link copied to clipboard!");
                                             }}
                                         >
@@ -392,9 +407,16 @@ export default function SessionalPapersPage() {
             {viewingNote && (
                 <NoteViewer
                     isOpen={!!viewingNote}
-                    onClose={() => setViewingNote(null)}
+                    onClose={() => {
+                        setViewingNote(null);
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('id');
+                        window.history.pushState({}, '', url);
+                    }}
                     title={viewingNote.title}
                     fileUrl={viewingNote.file_url}
+                    isPremium={viewingNote.is_premium}
+                    shareUrl={typeof window !== "undefined" ? `${window.location.origin}/dashboard/sessional-papers?id=${viewingNote.id}` : undefined}
                 />
             )}
         </div>
