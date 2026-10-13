@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
 venv/
+venv2/
 backend/venv/
+backend/venv2/
 frontend/node_modules/
 
 # Environment Variables

@@ -1,18 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from ..core.database import get_db
-from ..models.models import PlacementMaterial, PlacementQuestion, PlacementProgress, User
+from ..models.models import PlacementMaterial, PlacementQuestion, PlacementProgress, MockTestSubmission, User
 from ..schemas.placement import (
     PlacementMaterial as PlacementMaterialSchema,
     PlacementMaterialCreate,
     PlacementMaterialDetail,
     PlacementQuestion as PlacementQuestionSchema,
     PlacementQuestionCreate,
-    PlacementQuestionUpdate
+    PlacementQuestionUpdate,
+    MockTestSubmissionCreate,
+    MockTestSubmissionOut
 )
 from .deps import get_current_admin, get_current_user, get_current_user_optional
 
@@ -142,3 +144,100 @@ async def toggle_question_progress(
         
     await db.commit()
     return {"status": "ok", "is_completed": is_completed}
+
+@router.post("/mock-tests/submit", response_model=MockTestSubmissionOut)
+async def submit_mock_test(
+    submission: MockTestSubmissionCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    user_id = current_user.id if current_user else None
+    email = current_user.email if current_user and not submission.student_email else submission.student_email
+    name = current_user.full_name if (current_user and current_user.full_name and submission.student_name in ["Student", ""]) else submission.student_name
+
+    new_sub = MockTestSubmission(
+        user_id=user_id,
+        student_name=name or "Student",
+        student_email=email,
+        college=submission.college or "ABES Engineering College",
+        test_id=submission.test_id,
+        test_title=submission.test_title,
+        score=submission.score,
+        total_marks=submission.total_marks,
+        percentage=submission.percentage,
+        time_taken_seconds=submission.time_taken_seconds,
+        ai_score=submission.ai_score,
+        tech_score=submission.tech_score
+    )
+    db.add(new_sub)
+    await db.commit()
+    await db.refresh(new_sub)
+
+    # Compute rank for this test
+    better_count_query = select(MockTestSubmission).filter(
+        MockTestSubmission.test_id == submission.test_id,
+        (
+            (MockTestSubmission.score > new_sub.score) |
+            ((MockTestSubmission.score == new_sub.score) & (MockTestSubmission.time_taken_seconds < new_sub.time_taken_seconds))
+        )
+    )
+    better_res = await db.execute(better_count_query)
+    rank = len(better_res.scalars().all()) + 1
+
+    return {
+        "id": new_sub.id,
+        "student_name": new_sub.student_name,
+        "student_email": new_sub.student_email,
+        "college": new_sub.college,
+        "test_id": new_sub.test_id,
+        "test_title": new_sub.test_title,
+        "score": new_sub.score,
+        "total_marks": new_sub.total_marks,
+        "percentage": new_sub.percentage,
+        "time_taken_seconds": new_sub.time_taken_seconds,
+        "ai_score": new_sub.ai_score,
+        "tech_score": new_sub.tech_score,
+        "submitted_at": new_sub.submitted_at,
+        "rank": rank
+    }
+
+@router.get("/mock-tests/leaderboard", response_model=List[MockTestSubmissionOut])
+async def get_mock_test_leaderboard(
+    test_id: Optional[str] = None,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db)
+):
+    query = select(MockTestSubmission)
+    if test_id and test_id != "all":
+        query = query.filter(MockTestSubmission.test_id == test_id)
+    
+    query = query.order_by(
+        MockTestSubmission.score.desc(),
+        MockTestSubmission.time_taken_seconds.asc(),
+        MockTestSubmission.submitted_at.asc()
+    ).limit(limit)
+    
+    result = await db.execute(query)
+    rows = list(result.scalars().all())
+    
+    leaderboard = []
+    for idx, row in enumerate(rows):
+        leaderboard.append({
+            "id": row.id,
+            "student_name": row.student_name,
+            "student_email": row.student_email,
+            "college": row.college,
+            "test_id": row.test_id,
+            "test_title": row.test_title,
+            "score": row.score,
+            "total_marks": row.total_marks,
+            "percentage": row.percentage,
+            "time_taken_seconds": row.time_taken_seconds,
+            "ai_score": row.ai_score,
+            "tech_score": row.tech_score,
+            "submitted_at": row.submitted_at,
+            "rank": idx + 1
+        })
+        
+    return leaderboard
+

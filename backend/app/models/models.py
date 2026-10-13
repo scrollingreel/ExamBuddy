@@ -197,3 +197,24 @@ class PlacementProgress(Base):
     user = relationship("User")
     question = relationship("PlacementQuestion")
 
+class MockTestSubmission(Base):
+    __tablename__ = "mock_test_submissions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    student_name = Column(String, nullable=False)
+    student_email = Column(String, nullable=True)
+    college = Column(String, nullable=True, default="ABES Engineering College")
+    test_id = Column(String, nullable=False, index=True)
+    test_title = Column(String, nullable=False)
+    score = Column(Integer, nullable=False)
+    total_marks = Column(Integer, default=40)
+    percentage = Column(Float, nullable=False)
+    time_taken_seconds = Column(Integer, nullable=False)
+    ai_score = Column(Integer, default=0)
+    tech_score = Column(Integer, default=0)
+    submitted_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    user = relationship("User")
+
+

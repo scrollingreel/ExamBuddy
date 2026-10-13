@@ -49,3 +49,36 @@ class PlacementMaterial(PlacementMaterialBase):
 
 class PlacementMaterialDetail(PlacementMaterial):
     questions: List[PlacementQuestion] = []
+
+class MockTestSubmissionCreate(BaseModel):
+    student_name: str
+    student_email: Optional[str] = None
+    college: Optional[str] = "ABES Engineering College"
+    test_id: str
+    test_title: str
+    score: int
+    total_marks: int = 40
+    percentage: float
+    time_taken_seconds: int
+    ai_score: int = 0
+    tech_score: int = 0
+
+class MockTestSubmissionOut(BaseModel):
+    id: UUID
+    student_name: str
+    student_email: Optional[str] = None
+    college: Optional[str] = None
+    test_id: str
+    test_title: str
+    score: int
+    total_marks: int
+    percentage: float
+    time_taken_seconds: int
+    ai_score: int
+    tech_score: int
+    submitted_at: datetime
+    rank: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
