@@ -26,129 +26,6 @@ export interface LeaderboardItem {
     rank?: number;
 }
 
-const DEFAULT_LEADERBOARD: LeaderboardItem[] = [
-    {
-        id: "d1",
-        student_name: "Utkarsh Gupta",
-        college: "ABES Engineering College",
-        test_id: "mock-2",
-        test_title: "Capgemini 2027 Mock Test 2",
-        score: 40,
-        total_marks: 40,
-        percentage: 100,
-        time_taken_seconds: 1150,
-        ai_score: 20,
-        tech_score: 20,
-        submitted_at: new Date(Date.now() - 3600000).toISOString(),
-        rank: 1
-    },
-    {
-        id: "d2",
-        student_name: "Aarav Sharma",
-        college: "ABES Engineering College",
-        test_id: "mock-1",
-        test_title: "Capgemini 2027 Mock Test 1",
-        score: 39,
-        total_marks: 40,
-        percentage: 97.5,
-        time_taken_seconds: 1240,
-        ai_score: 20,
-        tech_score: 19,
-        submitted_at: new Date(Date.now() - 7200000).toISOString(),
-        rank: 2
-    },
-    {
-        id: "d3",
-        student_name: "Priya Verma",
-        college: "ABES Engineering College",
-        test_id: "mock-1",
-        test_title: "Capgemini 2027 Mock Test 1",
-        score: 38,
-        total_marks: 40,
-        percentage: 95.0,
-        time_taken_seconds: 1315,
-        ai_score: 19,
-        tech_score: 19,
-        submitted_at: new Date(Date.now() - 10800000).toISOString(),
-        rank: 3
-    },
-    {
-        id: "d4",
-        student_name: "Ananya Singh",
-        college: "ABES Engineering College",
-        test_id: "mock-2",
-        test_title: "Capgemini 2027 Mock Test 2",
-        score: 38,
-        total_marks: 40,
-        percentage: 95.0,
-        time_taken_seconds: 1290,
-        ai_score: 19,
-        tech_score: 19,
-        submitted_at: new Date(Date.now() - 14400000).toISOString(),
-        rank: 4
-    },
-    {
-        id: "d5",
-        student_name: "Kartik Mishra",
-        college: "ABES Engineering College",
-        test_id: "mock-5",
-        test_title: "Capgemini 2027 Mock Test 5",
-        score: 38,
-        total_marks: 40,
-        percentage: 95.0,
-        time_taken_seconds: 1340,
-        ai_score: 19,
-        tech_score: 19,
-        submitted_at: new Date(Date.now() - 18000000).toISOString(),
-        rank: 5
-    },
-    {
-        id: "d6",
-        student_name: "Sneha Patel",
-        college: "ABES Engineering College",
-        test_id: "mock-4",
-        test_title: "Capgemini 2027 Mock Test 4",
-        score: 37,
-        total_marks: 40,
-        percentage: 92.5,
-        time_taken_seconds: 1380,
-        ai_score: 19,
-        tech_score: 18,
-        submitted_at: new Date(Date.now() - 21600000).toISOString(),
-        rank: 6
-    },
-    {
-        id: "d7",
-        student_name: "Rohan Gupta",
-        college: "KIET Group of Institutions",
-        test_id: "mock-1",
-        test_title: "Capgemini 2027 Mock Test 1",
-        score: 37,
-        total_marks: 40,
-        percentage: 92.5,
-        time_taken_seconds: 1420,
-        ai_score: 18,
-        tech_score: 19,
-        submitted_at: new Date(Date.now() - 25200000).toISOString(),
-        rank: 7
-    },
-    {
-        id: "d8",
-        student_name: "Devansh Pandey",
-        college: "AKGEC Ghaziabad",
-        test_id: "mock-3",
-        test_title: "Capgemini 2027 Mock Test 3",
-        score: 36,
-        total_marks: 40,
-        percentage: 90.0,
-        time_taken_seconds: 1510,
-        ai_score: 18,
-        tech_score: 18,
-        submitted_at: new Date(Date.now() - 28800000).toISOString(),
-        rank: 8
-    }
-];
-
 interface LeaderboardViewProps {
     initialTestFilter?: string;
     highlightSubmissionId?: string;
@@ -184,18 +61,12 @@ export function CapgeminiLeaderboardView({ initialTestFilter = "all", highlightS
                 console.error("Error reading local submissions", e);
             }
 
-            // Merge and deduplicate by id
+            // Merge and deduplicate by id (ONLY real submissions)
             const map = new Map<string, LeaderboardItem>();
-            
-            // Add fallback defaults if API and local are empty
-            if (apiData.length === 0 && localSubs.length === 0) {
-                DEFAULT_LEADERBOARD.forEach(item => map.set(item.id, item));
-            } else {
-                apiData.forEach(item => map.set(item.id, item));
-                localSubs.forEach(item => {
-                    if (!map.has(item.id)) map.set(item.id, item);
-                });
-            }
+            apiData.forEach(item => map.set(item.id, item));
+            localSubs.forEach(item => {
+                if (!map.has(item.id)) map.set(item.id, item);
+            });
 
             // Filter by test if not all
             let list = Array.from(map.values());
@@ -214,14 +85,13 @@ export function CapgeminiLeaderboardView({ initialTestFilter = "all", highlightS
             const ranked = list.map((item, idx) => ({ ...item, rank: idx + 1 }));
             setEntries(ranked);
         } catch (error) {
-            console.error("Failed to load leaderboard, using cached fallback", error);
-            // Fallback to local + default
-            let list = [...DEFAULT_LEADERBOARD];
+            console.error("Failed to load leaderboard from API", error);
+            // Use only real local submissions if API is unreachable
+            let list: LeaderboardItem[] = [];
             try {
                 const stored = localStorage.getItem("capgemini_mock_submissions");
                 if (stored) {
-                    const localSubs = JSON.parse(stored);
-                    list = [...localSubs, ...list];
+                    list = JSON.parse(stored);
                 }
             } catch {}
             if (filterTest !== "all") {
